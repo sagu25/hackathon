@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Report Agent — Solution Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;padding:24px;}
+  .diagram{width:1240px;background:#fff;border-radius:12px;padding:22px 20px 18px;box-shadow:0 4px 24px rgba(0,0,0,.12);}
+
+  /* ── TITLE ── */
+  .title-wrap{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1.5px solid #e4e7ec;}
+  .title-wrap h1{font-size:21px;font-weight:700;color:#0f1923;letter-spacing:-.3px;}
+  .title-wrap p{font-size:11.5px;color:#6b7280;margin-top:4px;line-height:1.5;}
+
+  /* ── GRID ── */
+  .main-grid{display:grid;grid-template-columns:148px 1fr 175px;gap:10px;margin-bottom:10px;}
+
+  /* ── LEFT: DATA SOURCES ── */
+  .src-panel{border:2px solid #1e293b;border-radius:8px;overflow:hidden;height:100%;}
+  .src-panel .ph{background:#1e293b;color:#fff;padding:7px 8px;font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;text-align:center;}
+  .src-panel .pb{padding:8px;display:flex;flex-direction:column;gap:6px;}
+  .src-item{border:1.5px solid #d1d5db;border-radius:7px;padding:8px 6px 6px;text-align:center;background:#fff;}
+  .src-item .ico{font-size:22px;display:block;margin-bottom:3px;}
+  .src-item .nm{font-size:10.5px;font-weight:700;color:#1e293b;display:block;}
+  .src-item .sb{font-size:9.5px;color:#6b7280;display:block;margin-top:1px;line-height:1.3;}
+
+  /* ── CENTER FLOW ── */
+  .flow-col{display:flex;flex-direction:column;gap:5px;}
+  .tier{border-radius:8px;padding:9px 10px;border:2px solid;}
+  .tier-hdr{font-size:11px;font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:7px;}
+  .t-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10.5px;font-weight:700;color:#fff;flex-shrink:0;}
+  .tier-row{display:flex;gap:5px;}
+  .tb{flex:1;border-radius:6px;padding:7px 8px;}
+  .tb h5{font-size:10.5px;font-weight:700;margin-bottom:4px;}
+  .tb ul{list-style:none;}
+  .tb ul li{font-size:9.5px;line-height:1.55;color:#374151;padding-left:9px;position:relative;}
+  .tb ul li::before{content:'•';position:absolute;left:0;}
+  .arr{text-align:center;color:#94a3b8;font-size:15px;line-height:1.1;margin:1px 0;}
+
+  /* Tier colour tokens */
+  .t1{border-color:#2563eb;background:#eff6ff;}
+  .t1 .t-num{background:#2563eb;}
+  .t1 .tier-hdr{color:#1d4ed8;}
+  .tb1{background:#dbeafe;}
+  .tb1 h5{color:#1e40af;}
+
+  .t2{border-color:#d97706;background:#fffbeb;}
+  .t2 .t-num{background:#d97706;}
+  .t2 .tier-hdr{color:#b45309;}
+  .tb2{background:#fde68a44;}
+  .tb2 h5{color:#92400e;}
+
+  .t3{border-color:#059669;background:#ecfdf5;}
+  .t3 .t-num{background:#059669;}
+  .t3 .tier-hdr{color:#047857;}
+  .tb3{background:#d1fae5;}
+  .tb3 h5{color:#065f46;}
+
+  .t4{border-color:#dc2626;background:#fef2f2;}
+  .t4 .t-num{background:#dc2626;}
+  .t4 .tier-hdr{color:#b91c1c;}
+  .tb4{background:#fee2e2;}
+  .tb4 h5{color:#7f1d1d;}
+
+  .t5{border-color:#7c3aed;background:#f5f3ff;}
+  .t5 .t-num{background:#7c3aed;}
+  .t5 .tier-hdr{color:#6d28d9;}
+  .tb5{background:#ede9fe;}
+  .tb5 h5{color:#4c1d95;}
+
+  .t6{border-color:#f59e0b;background:#fffbeb;}
+  .t6 .t-num{background:#f59e0b;}
+  .t6 .tier-hdr{color:#d97706;}
+  .tb6{background:#fef3c7;}
+  .tb6 h5{color:#78350f;}
+
+  .t7{border-color:#0891b2;background:#ecfeff;}
+  .t7 .t-num{background:#0891b2;}
+  .t7 .tier-hdr{color:#0e7490;}
+  .tb7{background:#cffafe;}
+  .tb7 h5{color:#164e63;}
+
+  /* ── RIGHT SIDEBAR ── */
+  .right-col{display:flex;flex-direction:column;gap:7px;}
+  .rp{border:1.5px solid #d1d5db;border-radius:8px;overflow:hidden;}
+  .rp .ph{background:#f1f5f9;padding:5px 8px;font-size:10px;font-weight:700;color:#1e293b;border-bottom:1px solid #e2e8f0;}
+  .rp .pb{padding:6px 8px;display:flex;flex-direction:column;gap:4px;}
+  .ri strong{font-size:9.5px;font-weight:700;display:block;color:#1e293b;}
+  .ri span{font-size:9px;color:#6b7280;display:block;line-height:1.3;}
+  .tech-ph{background:#1e293b;color:#fff;}
+  .tl{list-style:none;}
+  .tl li{font-size:9.5px;color:#1e293b;line-height:1.7;padding-left:10px;position:relative;}
+  .tl li::before{content:'▸';position:absolute;left:0;color:#2563eb;font-size:8px;top:1px;}
+
+  /* ── BOTTOM ── */
+  .bottom-row{display:grid;grid-template-columns:148px 1fr;gap:10px;align-items:start;}
+  .legend{border:1.5px solid #d1d5db;border-radius:8px;padding:10px;}
+  .legend h4{font-size:10.5px;font-weight:700;color:#1e293b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+  .li{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:9.5px;color:#374151;}
+  .ln-s{width:28px;height:2px;background:#1e293b;}
+  .ln-d{width:28px;height:0;border-top:2px dashed #6b7280;}
+  .ln-b{width:28px;height:2px;background:#2563eb;}
+  .benefits{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;}
+  .bc{border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 8px;text-align:center;background:#f9fafb;}
+  .bc .ico{font-size:22px;display:block;margin-bottom:5px;}
+  .bc h5{font-size:10px;font-weight:700;color:#1e293b;margin-bottom:3px;}
+  .bc p{font-size:9px;color:#6b7280;line-height:1.4;}
+</style>
+</head>
+<body>
+<div class="diagram">
+
+  <!-- TITLE -->
+  <div class="title-wrap">
+    <h1>Learning Report Agent for Unified Analytics — MVP Architecture</h1>
+    <p>Agentic platform that ingests multi-source learning data, retains memory, generates reports and dashboards on demand, and self-builds Power Automate flows<br>Learns from every interaction · MCP-powered pluggable connectors · Predictive analytics · Proactive briefings</p>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT: DATA SOURCES -->
+    <div>
+      <div class="src-panel">
+        <div class="ph">DATA SOURCES</div>
+        <div class="pb">
+          <div class="src-item">
+            <span class="ico">🎓</span>
+            <span class="nm">LMS</span>
+            <span class="sb">Cornerstone SAP SF Learning</span>
+          </div>
+          <div class="src-item">
+            <span class="ico">📁</span>
+            <span class="nm">SharePoint</span>
+            <span class="sb">Files, Excel trackers</span>
+          </div>
+          <div class="src-item">
+            <span class="ico">👥</span>
+            <span class="nm">Workforce HR</span>
+            <span class="sb">Workday, SAP SF HR</span>
+          </div>
+          <div class="src-item">
+            <span class="ico">📊</span>
+            <span class="nm">Power BI</span>
+            <span class="sb">Existing datasets</span>
+          </div>
+          <div class="src-item">
+            <span class="ico">🔌</span>
+            <span class="nm">Other Systems</span>
+            <span class="sb">VPN, mail, apps</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: MAIN FLOW -->
+    <div class="flow-col">
+
+      <!-- 1. UI & Dashboard -->
+      <div class="tier t1">
+        <div class="tier-hdr"><span class="t-num">1</span> USER INTERFACE &amp; DASHBOARD</div>
+        <div class="tier-row">
+          <div class="tb tb1"><h5>User Portal</h5><ul><li>Teams chat &amp; voice</li><li>Outlook plug-in</li><li>Mobile &amp; web</li></ul></div>
+          <div class="tb tb1"><h5>Report Viewer</h5><ul><li>Power BI embedded</li><li>Custom React UI</li><li>On-demand reports</li></ul></div>
+          <div class="tb tb1"><h5>Alerts &amp; Briefings</h5><ul><li>Proactive insights</li><li>Threshold alerts</li><li>Weekly briefings</li></ul></div>
+          <div class="tb tb1"><h5>Admin Console</h5><ul><li>Source onboarding</li><li>Agent &amp; prompt tuning</li><li>RBAC · audit · cost</li></ul></div>
+          <div class="tb tb1"><h5>Flow Library</h5><ul><li>Agent-built flows</li><li>Approval centre</li><li>Schedule triggers</li></ul></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+
+      <!-- 2. Ingestion -->
+      <div class="tier t2">
+        <div class="tier-hdr"><span class="t-num">2</span> INGESTION LAYER</div>
+        <div class="tier-row">
+          <div class="tb tb2"><h5>Connectors &amp; Normalizers</h5><ul><li>API connectors</li><li>Excel parser</li><li>SharePoint reader</li></ul></div>
+          <div class="tb tb2"><h5>Identity Resolution</h5><ul><li>Cross-system ID match</li><li>Deduplication</li><li>Master data merge</li></ul></div>
+          <div class="tb tb2"><h5>Schema Detection</h5><ul><li>Auto-maps new files</li><li>Drift detection</li><li>Proposes transforms</li></ul></div>
+          <div class="tb tb2"><h5>Azure Data Factory</h5><ul><li>Pipeline orchestration</li><li>Bronze / Silver / Gold</li><li>Incremental refresh</li></ul></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+
+      <!-- 3. MCP -->
+      <div class="tier t3">
+        <div class="tier-hdr"><span class="t-num">3</span> MCP TOOL LAYER &nbsp;—&nbsp; MODEL CONTEXT PROTOCOL (Pluggable Connectors)</div>
+        <div class="tier-row">
+          <div class="tb tb3"><h5>LMS MCP Server</h5><ul><li>get_completions</li><li>get_enrollments</li><li>get_course_catalog</li></ul></div>
+          <div class="tb tb3"><h5>HR MCP Server</h5><ul><li>get_org_hierarchy</li><li>get_employee_profile</li><li>get_role_skills</li></ul></div>
+          <div class="tb tb3"><h5>Power BI MCP</h5><ul><li>query_semantic_model</li><li>embed_visual</li><li>create_report (gen)</li></ul></div>
+          <div class="tb tb3"><h5>Automate MCP</h5><ul><li>list_flows</li><li>trigger_flow</li><li>create_flow (gen)</li></ul></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+
+      <!-- 4. Multi-agent -->
+      <div class="tier t4">
+        <div class="tier-hdr"><span class="t-num">4</span> MULTI-AGENT ORCHESTRATION &nbsp;—&nbsp; Copilot Studio + Azure AI Foundry</div>
+        <div class="tier-row">
+          <div class="tb tb4"><h5>Orchestrator Agent</h5><ul><li>Intent parsing</li><li>Agent routing</li><li>Response composition</li></ul></div>
+          <div class="tb tb4"><h5>Insight Agent</h5><ul><li>Anomaly detection</li><li>Narrative generation</li><li>Comparative analysis</li></ul></div>
+          <div class="tb tb4"><h5>Report Builder Agent</h5><ul><li>Generative Power BI</li><li>Custom React UI</li><li>Narrative summaries</li></ul></div>
+          <div class="tb tb4"><h5>Action Agent</h5><ul><li>Builds PA flows</li><li>Schedules reports</li><li>Sends alerts</li></ul></div>
+          <div class="tb tb4"><h5>Critic Agent</h5><ul><li>Hallucination check</li><li>Grounding validation</li><li>Quality gating</li></ul></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+
+      <!-- 5. Memory + Intelligence -->
+      <div class="tier t5">
+        <div class="tier-hdr"><span class="t-num">5</span> MEMORY &amp; INTELLIGENCE LAYER &nbsp;—&nbsp; Azure AI Search / Cosmos DB</div>
+        <div class="tier-row">
+          <div class="tb tb5"><h5>Agent Memory Store</h5><ul><li>Episodic: past queries</li><li>Semantic: org knowledge</li><li>Procedural: recipes</li></ul></div>
+          <div class="tb tb5"><h5>Knowledge Graph</h5><ul><li>People → skills → roles</li><li>Cosmos DB Gremlin</li><li>Path &amp; gap queries</li></ul></div>
+          <div class="tb tb5"><h5>Predictive ML</h5><ul><li>Compliance forecasts</li><li>Skill gap projection</li><li>Risk signals (Azure ML)</li></ul></div>
+          <div class="tb tb5"><h5>Vector Search</h5><ul><li>Semantic embeddings</li><li>Azure AI Search</li><li>NL2Query grounding</li></ul></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+
+      <!-- 6. Generative Output -->
+      <div class="tier t6">
+        <div class="tier-hdr"><span class="t-num">6</span> GENERATIVE OUTPUT &amp; DECISION LAYER</div>
+        <div class="tier-row">
+          <div class="tb tb6"><h5>Report Generation</h5><ul><li>API-built Power BI</li><li>Dynamic datasets</li><li>Scheduled delivery</li></ul></div>
+          <div class="tb tb6"><h5>Flow Builder</h5><ul><li>PA flow JSON gen</li><li>Auto-deploy &amp; activate</li><li>Dry-run validation</li></ul></div>
+          <div class="tb tb6"><h5>Insight Narrative</h5><ul><li>AI-generated text</li><li>Anomaly explanations</li><li>Actionable summaries</li></ul></div>
+          <div class="tb tb6"><h5>Proactive Engine</h5><ul><li>Daily scan &amp; brief</li><li>Threshold watchers</li><li>Manager nudges</li></ul></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+
+      <!-- 7. Data Store -->
+      <div class="tier t7">
+        <div class="tier-hdr"><span class="t-num">7</span> DATA STORE LAYER</div>
+        <div class="tier-row">
+          <div class="tb tb7"><h5>Bronze Lake</h5><ul><li>Azure Storage</li><li>ADF raw landing</li></ul></div>
+          <div class="tb tb7"><h5>Silver Dataverse</h5><ul><li>Cleaned entities</li><li>ID-resolved records</li></ul></div>
+          <div class="tb tb7"><h5>Gold Semantic</h5><ul><li>Power BI models</li><li>Analytical queries</li></ul></div>
+          <div class="tb tb7"><h5>Vector Store</h5><ul><li>AI Search index</li><li>Semantic embeddings</li></ul></div>
+          <div class="tb tb7"><h5>Memory Store</h5><ul><li>Cosmos DB</li><li>Agent memory + graph</li></ul></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: CROSS-CUTTING -->
+    <div class="right-col">
+      <div class="rp">
+        <div class="ph">Monitoring &amp; Observability</div>
+        <div class="pb">
+          <div class="ri"><strong>System Health</strong><span>App Insights · latency · volume</span></div>
+          <div class="ri"><strong>Model Monitoring</strong><span>Hallucination detection · accuracy tracking</span></div>
+          <div class="ri"><strong>Prompt / Response Logs</strong><span>All agent interactions logged</span></div>
+          <div class="ri"><strong>Cost Tracking</strong><span>Per-query Azure AI cost</span></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="ph">Governance &amp; Audit</div>
+        <div class="pb">
+          <div class="ri"><strong>Microsoft Purview</strong><span>Data lineage · sensitivity labels</span></div>
+          <div class="ri"><strong>Immutable Audit Logs</strong><span>Every agent action traceable</span></div>
+          <div class="ri"><strong>Data Retention</strong><span>Policy-driven lifecycle</span></div>
+          <div class="ri"><strong>Compliance Reports</strong><span>GDPR · SOC2 ready</span></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="ph">Security</div>
+        <div class="pb">
+          <div class="ri"><strong>Entra ID Auth</strong><span>SSO + MFA enforced</span></div>
+          <div class="ri"><strong>RBAC + Row-level Security</strong><span>Dataverse + Power BI RLS</span></div>
+          <div class="ri"><strong>Key Vault</strong><span>All secrets managed centrally</span></div>
+          <div class="ri"><strong>Private Endpoints</strong><span>No public PaaS exposure</span></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="ph">AgentOps / MLOps</div>
+        <div class="pb">
+          <div class="ri"><strong>Prompt Versioning</strong><span>CI/CD pipeline for agents</span></div>
+          <div class="ri"><strong>Eval Suites</strong><span>Regression testing agents</span></div>
+          <div class="ri"><strong>Memory Curation</strong><span>Human-in-the-loop review</span></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="ph tech-ph">TECHNOLOGIES (MVP)</div>
+        <div class="pb">
+          <ul class="tl">
+            <li>Azure OpenAI + AI Foundry</li>
+            <li>Copilot Studio</li>
+            <li>Azure Data Factory</li>
+            <li>Microsoft Fabric</li>
+            <li>Dataverse</li>
+            <li>Power BI + Power Automate</li>
+            <li>Azure AI Search (Vector)</li>
+            <li>Cosmos DB (Memory + Graph)</li>
+            <li>Azure ML (Predictive)</li>
+            <li>MCP Servers (custom)</li>
+            <li>Semantic Kernel / AutoGen</li>
+            <li>Microsoft Purview</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM: LEGEND + BENEFITS -->
+  <div class="bottom-row">
+    <div class="legend">
+      <h4>LEGEND</h4>
+      <div class="li"><div class="ln-s"></div><span>Data flow</span></div>
+      <div class="li"><div class="ln-d"></div><span>Control / agent flow</span></div>
+      <div class="li"><div class="ln-b"></div><span>Read / Write</span></div>
+    </div>
+    <div class="benefits">
+      <div class="bc"><span class="ico">🧠</span><h5>Self-learning agent</h5><p>Episodic, semantic, and procedural memory — compounds value every interaction</p></div>
+      <div class="bc"><span class="ico">📊</span><h5>Generative reporting</h5><p>Power BI reports and custom UI built on demand from natural language asks</p></div>
+      <div class="bc"><span class="ico">⚡</span><h5>Self-building automation</h5><p>Agent creates Power Automate flows live from user intent — no code needed</p></div>
+      <div class="bc"><span class="ico">🔌</span><h5>MCP pluggability</h5><p>New data source = new MCP server — zero agent rebuild required</p></div>
+      <div class="bc"><span class="ico">🔮</span><h5>Predictive intelligence</h5><p>Forecasts compliance risk, skill gaps, and attrition before they surface</p></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

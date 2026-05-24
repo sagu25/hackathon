@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Report Agent — Complete Developer Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',Arial,sans-serif;background:#f0f2f5;color:#1e293b;line-height:1.6;}
+
+/* NAV */
+.sidenav{position:fixed;left:0;top:0;width:220px;height:100vh;background:#0f172a;overflow-y:auto;padding:20px 0;z-index:100;}
+.sidenav .logo{padding:0 18px 18px;border-bottom:1px solid #1e293b;margin-bottom:14px;}
+.sidenav .logo h2{font-size:13px;font-weight:700;color:#fff;line-height:1.4;}
+.sidenav .logo p{font-size:10px;color:#64748b;margin-top:3px;}
+.nav-section{font-size:9.5px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.8px;padding:8px 18px 4px;}
+.nav-link{display:block;padding:6px 18px;font-size:11.5px;color:#94a3b8;text-decoration:none;transition:all .15s;}
+.nav-link:hover,.nav-link.active{color:#fff;background:#1e293b;}
+.nav-link.sub{padding-left:30px;font-size:11px;}
+
+/* MAIN */
+.main{margin-left:220px;padding:32px 40px;max-width:1100px;}
+
+/* HEADER */
+.page-header{background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border-radius:14px;padding:36px 40px;margin-bottom:32px;color:#fff;}
+.page-header h1{font-size:26px;font-weight:700;margin-bottom:6px;}
+.page-header p{font-size:13.5px;color:#94a3b8;max-width:700px;line-height:1.6;}
+.badges{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-blue{background:#1d4ed8;color:#fff;}
+.b-green{background:#15803d;color:#fff;}
+.b-amber{background:#d97706;color:#fff;}
+.b-purple{background:#7c3aed;color:#fff;}
+.b-slate{background:#475569;color:#fff;}
+
+/* SECTIONS */
+.section{background:#fff;border-radius:12px;padding:28px 32px;margin-bottom:24px;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.section-title{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #f1f5f9;}
+.section-num{background:#1e293b;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.section-title h2{font-size:19px;font-weight:700;color:#0f172a;}
+.section-title p{font-size:11.5px;color:#6b7280;margin-top:2px;}
+
+h3{font-size:15px;font-weight:700;color:#0f172a;margin:20px 0 10px;}
+h4{font-size:13px;font-weight:700;color:#374151;margin:14px 0 6px;}
+p{font-size:13px;color:#374151;margin-bottom:10px;}
+ul,ol{padding-left:20px;margin-bottom:10px;}
+li{font-size:13px;color:#374151;margin-bottom:4px;line-height:1.55;}
+strong{color:#0f172a;}
+
+/* CODE BLOCKS */
+pre{background:#0f172a;border-radius:8px;padding:16px 18px;overflow-x:auto;margin:12px 0;}
+pre code{font-family:'JetBrains Mono',monospace;font-size:12px;color:#e2e8f0;line-height:1.65;}
+.inline-code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:#f1f5f9;color:#0f172a;padding:2px 6px;border-radius:4px;}
+.kw{color:#c084fc;}
+.fn{color:#60a5fa;}
+.str{color:#86efac;}
+.cm{color:#64748b;font-style:italic;}
+.num{color:#fbbf24;}
+
+/* FILE TREE */
+.file-tree{background:#0f172a;border-radius:8px;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#e2e8f0;line-height:1.8;margin:12px 0;}
+.ft-dir{color:#60a5fa;font-weight:600;}
+.ft-file{color:#86efac;}
+.ft-comment{color:#64748b;}
+.ft-indent{color:#334155;}
+
+/* TIER CARDS */
+.tier-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:12px 0;}
+.tier-card{border-radius:8px;padding:14px 16px;border:2px solid;}
+.tier-card h4{font-size:12px;font-weight:700;margin:0 0 8px;}
+.tier-card ul{margin:0;padding-left:14px;}
+.tier-card li{font-size:11.5px;margin-bottom:3px;}
+.tc1{border-color:#2563eb;background:#eff6ff;}.tc1 h4{color:#1d4ed8;}
+.tc2{border-color:#d97706;background:#fffbeb;}.tc2 h4{color:#b45309;}
+.tc3{border-color:#059669;background:#ecfdf5;}.tc3 h4{color:#065f46;}
+.tc4{border-color:#dc2626;background:#fef2f2;}.tc4 h4{color:#b91c1c;}
+.tc5{border-color:#7c3aed;background:#f5f3ff;}.tc5 h4{color:#6d28d9;}
+.tc6{border-color:#f59e0b;background:#fffbeb;}.tc6 h4{color:#78350f;}
+.tc7{border-color:#0891b2;background:#ecfeff;}.tc7 h4{color:#164e63;}
+
+/* STEP BOXES (setup guide) */
+.step-box{border-left:4px solid #2563eb;background:#eff6ff;border-radius:0 8px 8px 0;padding:14px 16px;margin:12px 0;}
+.step-box .step-num{font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.step-box h4{font-size:13px;font-weight:700;color:#1e40af;margin:0 0 6px;}
+.step-box p,.step-box li{font-size:12.5px;color:#1e40af;}
+
+.warn-box{border-left:4px solid #d97706;background:#fffbeb;border-radius:0 8px 8px 0;padding:14px 16px;margin:12px 0;}
+.warn-box strong{font-size:12.5px;color:#92400e;}
+.warn-box p,.warn-box li{font-size:12px;color:#78350f;}
+
+.success-box{border-left:4px solid #059669;background:#ecfdf5;border-radius:0 8px 8px 0;padding:14px 16px;margin:12px 0;}
+.success-box strong{font-size:12.5px;color:#065f46;}
+.success-box p{font-size:12px;color:#065f46;}
+
+/* PHASE TABLE */
+.phase-table{width:100%;border-collapse:collapse;margin:12px 0;}
+.phase-table th{background:#1e293b;color:#fff;padding:10px 14px;font-size:12px;text-align:left;}
+.phase-table td{padding:10px 14px;font-size:12px;border-bottom:1px solid #e5e7eb;vertical-align:top;}
+.phase-table tr:last-child td{border-bottom:none;}
+.phase-table tr:nth-child(even) td{background:#f9fafb;}
+.ph-1{background:#dbeafe;border-left:3px solid #2563eb;font-weight:700;color:#1e40af;}
+.ph-2{background:#dcfce7;border-left:3px solid #16a34a;font-weight:700;color:#14532d;}
+.ph-3{background:#fef3c7;border-left:3px solid #d97706;font-weight:700;color:#78350f;}
+.ph-4{background:#f3e8ff;border-left:3px solid #9333ea;font-weight:700;color:#4c1d95;}
+
+/* GAP TABLE */
+.gap-table{width:100%;border-collapse:collapse;margin:12px 0;}
+.gap-table th{background:#374151;color:#fff;padding:10px 14px;font-size:12px;text-align:left;}
+.gap-table td{padding:10px 14px;font-size:12px;border-bottom:1px solid #e5e7eb;vertical-align:top;}
+.gap-table tr:nth-child(even) td{background:#f9fafb;}
+.done{color:#059669;font-weight:600;}
+.partial{color:#d97706;font-weight:600;}
+.missing{color:#dc2626;font-weight:600;}
+
+/* CHECKLIST */
+.checklist{list-style:none;padding:0;margin:10px 0;}
+.checklist li{padding:6px 0 6px 26px;position:relative;font-size:12.5px;color:#374151;border-bottom:1px solid #f1f5f9;}
+.checklist li:last-child{border-bottom:none;}
+.checklist li::before{content:'';position:absolute;left:0;top:10px;width:14px;height:14px;border-radius:3px;background:#2563eb;}
+.checklist li::after{content:'✓';position:absolute;left:3px;top:8px;font-size:10px;color:#fff;font-weight:700;}
+
+.divider{border:none;border-top:1px solid #e5e7eb;margin:20px 0;}
+
+/* CALLOUT */
+.callout{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:14px 16px;margin:12px 0;}
+.callout strong{font-size:12.5px;color:#0f172a;display:block;margin-bottom:4px;}
+.callout p{font-size:12px;color:#4b5563;margin:0;}
+</style>
+</head>
+<body>
+
+<!-- SIDE NAV -->
+<nav class="sidenav">
+  <div class="logo">
+    <h2>🎓 Learning Report Agent</h2>
+    <p>Developer Guide v1.0</p>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a class="nav-link" href="#overview">What We Built</a>
+  <a class="nav-link" href="#architecture">Architecture</a>
+
+  <div class="nav-section">Codebase</div>
+  <a class="nav-link" href="#structure">File Structure</a>
+  <a class="nav-link sub" href="#tier1">Tier 1 — UI</a>
+  <a class="nav-link sub" href="#tier2">Tier 2 — Ingestion</a>
+  <a class="nav-link sub" href="#tier3">Tier 3 — MCP Servers</a>
+  <a class="nav-link sub" href="#tier4">Tier 4 — Agents</a>
+  <a class="nav-link sub" href="#tier5">Tier 5 — Memory</a>
+  <a class="nav-link sub" href="#tier6">Tier 6 — Output</a>
+  <a class="nav-link sub" href="#tier7">Tier 7 — Data Store</a>
+
+  <div class="nav-section">How It Works</div>
+  <a class="nav-link" href="#dataflow">Data Flow</a>
+  <a class="nav-link" href="#agent-loop">Agent Loop</a>
+  <a class="nav-link" href="#mockdata">Mock Data</a>
+
+  <div class="nav-section">Roadmap</div>
+  <a class="nav-link" href="#gaps">MVP vs Production</a>
+  <a class="nav-link" href="#phases">Phase Plan</a>
+  <a class="nav-link" href="#microservice">Microservice Arch</a>
+
+  <div class="nav-section">Setup</div>
+  <a class="nav-link" href="#setup">Setup on New Laptop</a>
+  <a class="nav-link sub" href="#prereqs">Prerequisites</a>
+  <a class="nav-link sub" href="#install">Installation</a>
+  <a class="nav-link sub" href="#azuresetup">Azure OpenAI Setup</a>
+  <a class="nav-link sub" href="#run">Running the App</a>
+  <a class="nav-link sub" href="#troubleshoot">Troubleshooting</a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>🎓 Learning Report Agent — Developer Guide</h1>
+    <p>Complete documentation for the MVP build: architecture, codebase walkthrough, MVP→Production roadmap, and full setup instructions for a new machine.</p>
+    <div class="badges">
+      <span class="badge b-blue">Python 3.11</span>
+      <span class="badge b-green">Streamlit UI</span>
+      <span class="badge b-amber">Azure OpenAI</span>
+      <span class="badge b-purple">MCP Servers</span>
+      <span class="badge b-blue">SQLite + ChromaDB</span>
+      <span class="badge b-slate">7-Tier Architecture</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 1: WHAT WE BUILT -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="overview">
+    <div class="section-title">
+      <div class="section-num">1</div>
+      <div><h2>What We Built</h2><p>An agentic platform for unified learning & development analytics</p></div>
+    </div>
+
+    <p>The <strong>Learning Report Agent</strong> is an AI-powered analytics platform that ingests learning data from multiple sources (LMS, HR systems, SharePoint, Power BI), stores it in a structured data lake, and lets users query it in natural language via a multi-agent system.</p>
+
+    <p>It was built as an <strong>MVP (Phase 1)</strong> — fully functional locally, using mock data and local storage, designed so every component can be swapped to cloud services (Azure) with minimal code change.</p>
+
+    <h3>Core Capabilities Delivered</h3>
+    <ul>
+      <li>💬 <strong>Natural language chat</strong> — ask questions about learning data; agents call the right tools and synthesise answers</li>
+      <li>📊 <strong>On-demand reports</strong> — Compliance, Learning KPI, and Skill Gap reports generated instantly</li>
+      <li>📈 <strong>Interactive dashboards</strong> — Live Plotly charts: completion heatmaps, treemaps, trend lines, scatter plots</li>
+      <li>⚡ <strong>Flow builder</strong> — Agent generates Power Automate flow JSON from natural language intent</li>
+      <li>🧠 <strong>Agent memory</strong> — Episodic (past queries), semantic (org knowledge), procedural (recipes) — stored and recalled</li>
+      <li>🔌 <strong>MCP tool layer</strong> — Pluggable Model Context Protocol servers for LMS, HR, Power BI, and Power Automate data</li>
+      <li>🗄️ <strong>Bronze/Silver/Gold data lake</strong> — Medallion architecture in SQLite with pre-computed KPI aggregates</li>
+    </ul>
+
+    <div class="success-box">
+      <strong>Current Status</strong>
+      <p>Running locally at <span class="inline-code">http://localhost:8502</span> with 500 mock employees, 3,732 LMS enrollments, 2,211 skill assessments, and Gold KPIs pre-computed. Azure OpenAI is optional — the app runs with a mock fallback if not configured.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 2: ARCHITECTURE -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="architecture">
+    <div class="section-title">
+      <div class="section-num">2</div>
+      <div><h2>Architecture Overview</h2><p>7-tier agentic platform — each tier is a logical layer with clear responsibilities</p></div>
+    </div>
+
+    <p>The architecture follows a <strong>7-tier layered design</strong> based on the challenge brief. In the MVP, all tiers run in a single Python process. In production, each tier becomes an independent Azure service.</p>
+
+    <div class="tier-grid">
+      <div class="tier-card tc1" id="tier1-ref">
+        <h4>Tier 1 — User Interface & Dashboard</h4>
+        <ul>
+          <li>Streamlit multi-page app (<span class="inline-code">ui/</span>)</li>
+          <li>Chat Agent page with conversation history</li>
+          <li>Reports page — on-demand generation</li>
+          <li>Dashboards — Plotly charts from Gold layer</li>
+          <li>Flow Library — view/trigger PA flows</li>
+          <li>Admin Console — setup, config, data explorer</li>
+        </ul>
+      </div>
+      <div class="tier-card tc2">
+        <h4>Tier 2 — Ingestion Layer</h4>
+        <ul>
+          <li>Mock data generator with Faker (<span class="inline-code">scripts/generate_mock_data.py</span>)</li>
+          <li>CSV connectors for LMS, HR, courses, skills, budget</li>
+          <li>Database setup with Bronze/Silver/Gold schema (<span class="inline-code">scripts/setup_db.py</span>)</li>
+          <li>Identity resolution via SQL joins</li>
+        </ul>
+      </div>
+      <div class="tier-card tc3">
+        <h4>Tier 3 — MCP Tool Layer</h4>
+        <ul>
+          <li>4 MCP servers: LMS, HR, Power BI, Power Automate</li>
+          <li>Each server exposes typed tool functions</li>
+          <li>Tools are called by agents via function-calling</li>
+          <li>All backed by the same SQLite database</li>
+        </ul>
+      </div>
+      <div class="tier-card tc4">
+        <h4>Tier 4 — Multi-Agent Orchestration</h4>
+        <ul>
+          <li>Orchestrator agent with Azure OpenAI GPT-4o</li>
+          <li>Intent parsing and tool routing</li>
+          <li>Multi-turn conversation history</li>
+          <li>Agentic loop: up to 6 tool-call cycles per query</li>
+        </ul>
+      </div>
+      <div class="tier-card tc5">
+        <h4>Tier 5 — Memory & Intelligence</h4>
+        <ul>
+          <li>Episodic memory: past queries stored in SQLite</li>
+          <li>Semantic search: ChromaDB vector embeddings</li>
+          <li>Knowledge graph: NetworkX (people→skills→roles)</li>
+          <li>Procedural recipes: default workflows in SQLite</li>
+        </ul>
+      </div>
+      <div class="tier-card tc6">
+        <h4>Tier 6 — Generative Output</h4>
+        <ul>
+          <li>Report generator: Compliance, KPI, Skill Gap</li>
+          <li>Flow builder: Power Automate JSON generation</li>
+          <li>Proactive engine: daily scan for compliance risk</li>
+          <li>Narrative engine: AI-written summaries</li>
+        </ul>
+      </div>
+      <div class="tier-card tc7" style="grid-column:span 2">
+        <h4>Tier 7 — Data Store Layer (SQLite Medallion)</h4>
+        <ul>
+          <li><strong>Bronze:</strong> Raw mock data loaded from CSVs (employees, enrollments, skills, budget)</li>
+          <li><strong>Silver:</strong> Cleaned, identity-resolved tables (employees, lms_enrollments, skill_assessments, course_catalog)</li>
+          <li><strong>Gold:</strong> Pre-aggregated KPIs (gold_dept_learning_kpis, gold_compliance_summary, gold_skill_gap)</li>
+          <li><strong>Vector Store:</strong> ChromaDB persistent store at <span class="inline-code">data/chroma/</span></li>
+          <li><strong>Memory Store:</strong> SQLite tables (agent_memory_episodic, agent_memory_procedural, generated_flows, generated_reports)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 3: FILE STRUCTURE -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="structure">
+    <div class="section-title">
+      <div class="section-num">3</div>
+      <div><h2>Codebase Structure</h2><p>Every file and what it does</p></div>
+    </div>
+
+    <div class="file-tree">
+<span class="ft-dir">learning_report_agent/</span>
+│
+├── <span class="ft-file">config.py</span>           <span class="ft-comment"># All settings — paths, Azure OpenAI keys, env vars</span>
+├── <span class="ft-file">start.py</span>            <span class="ft-comment"># One-command launcher: generates data + sets up DB + runs Streamlit</span>
+├── <span class="ft-file">requirements.txt</span>    <span class="ft-comment"># Python dependencies</span>
+├── <span class="ft-file">.env.example</span>        <span class="ft-comment"># Copy to .env and fill in Azure OpenAI credentials</span>
+│
+├── <span class="ft-dir">scripts/</span>            <span class="ft-comment"># One-off setup scripts</span>
+│   ├── <span class="ft-file">generate_mock_data.py</span>  <span class="ft-comment"># Creates 500 employees, 3732 enrollments, skills, budget CSVs</span>
+│   └── <span class="ft-file">setup_db.py</span>            <span class="ft-comment"># Creates SQLite schema, loads CSVs, builds Gold KPI aggregates</span>
+│
+├── <span class="ft-dir">data/</span>               <span class="ft-comment"># All data files (created at runtime)</span>
+│   ├── <span class="ft-dir">mock/</span>               <span class="ft-comment"># CSV files: employees, lms_enrollments, skills, budget, courses</span>
+│   ├── <span class="ft-file">learning_agent.db</span>  <span class="ft-comment"># Main SQLite database (Bronze+Silver+Gold+Memory)</span>
+│   ├── <span class="ft-dir">chroma/</span>             <span class="ft-comment"># ChromaDB vector index files</span>
+│   └── <span class="ft-dir">memory/</span>             <span class="ft-comment"># Reserved for JSON memory snapshots</span>
+│
+├── <span class="ft-dir">mcp_servers/</span>        <span class="ft-comment"># Tier 3: MCP Tool Layer</span>
+│   ├── <span class="ft-file">db_tools.py</span>        <span class="ft-comment"># Shared SQLite query helpers (query, query_one, execute)</span>
+│   ├── <span class="ft-file">lms_server.py</span>      <span class="ft-comment"># LMS MCP server: completions, enrollments, catalog, compliance, KPIs</span>
+│   ├── <span class="ft-file">hr_server.py</span>       <span class="ft-comment"># HR MCP server: employee profiles, org hierarchy, skill gaps</span>
+│   ├── <span class="ft-file">powerbi_server.py</span>  <span class="ft-comment"># Power BI MCP server: dataset queries, report creation</span>
+│   └── <span class="ft-file">automate_server.py</span> <span class="ft-comment"># Power Automate MCP server: flow CRUD, templates, trigger</span>
+│
+├── <span class="ft-dir">agents/</span>             <span class="ft-comment"># Tier 4: Multi-Agent Orchestration</span>
+│   ├── <span class="ft-file">llm_client.py</span>      <span class="ft-comment"># Azure OpenAI client + mock fallback for offline use</span>
+│   ├── <span class="ft-file">tools_registry.py</span>  <span class="ft-comment"># All tool definitions in OpenAI function-calling JSON format</span>
+│   ├── <span class="ft-file">tool_executor.py</span>   <span class="ft-comment"># Dispatches tool names to MCP server functions</span>
+│   └── <span class="ft-file">orchestrator.py</span>    <span class="ft-comment"># Main agent: intent parsing, tool loop, memory, response</span>
+│
+├── <span class="ft-dir">memory/</span>             <span class="ft-comment"># Tier 5: Memory & Intelligence</span>
+│   ├── <span class="ft-file">agent_memory.py</span>    <span class="ft-comment"># Episodic, semantic, procedural memory — SQLite + ChromaDB</span>
+│   └── <span class="ft-file">knowledge_graph.py</span> <span class="ft-comment"># NetworkX graph: employees→departments→skills, path queries</span>
+│
+├── <span class="ft-dir">output/</span>             <span class="ft-comment"># Tier 6: Generative Output</span>
+│   ├── <span class="ft-file">report_generator.py</span>  <span class="ft-comment"># Compliance, KPI, Skill Gap report builders</span>
+│   └── <span class="ft-file">proactive_engine.py</span>  <span class="ft-comment"># Daily scan for compliance risk, manager briefings</span>
+│
+└── <span class="ft-dir">ui/</span>                 <span class="ft-comment"># Tier 1: Streamlit User Interface</span>
+    ├── <span class="ft-file">app.py</span>             <span class="ft-comment"># Homepage — KPI scorecards + navigation</span>
+    └── <span class="ft-dir">pages/</span>
+        ├── <span class="ft-file">1_Chat_Agent.py</span>    <span class="ft-comment"># Conversational AI with tool visibility + suggested queries</span>
+        ├── <span class="ft-file">2_Reports.py</span>       <span class="ft-comment"># Generate + save + visualise structured reports</span>
+        ├── <span class="ft-file">3_Dashboards.py</span>    <span class="ft-comment"># Live Plotly dashboards from Gold layer</span>
+        ├── <span class="ft-file">4_Flow_Library.py</span>  <span class="ft-comment"># View, create, and trigger Power Automate flows</span>
+        └── <span class="ft-file">5_Admin.py</span>         <span class="ft-comment"># DB setup, config, memory inspector, data explorer</span>
+    </div>
+
+    <hr class="divider">
+
+    <h3 id="tier1">Tier 1 — UI (<span class="inline-code">ui/</span>)</h3>
+    <p>Built with <strong>Streamlit</strong>. Each file in <span class="inline-code">ui/pages/</span> becomes a separate page automatically. The main entry point is <span class="inline-code">ui/app.py</span> which shows KPI scorecards on the homepage.</p>
+    <ul>
+      <li><strong>1_Chat_Agent.py</strong> — Full chat interface. Sidebar has 8 suggested queries. Uses <span class="inline-code">st.session_state</span> to maintain conversation history across turns. After each response, expands to show which tools were called and with what arguments.</li>
+      <li><strong>2_Reports.py</strong> — Dropdown to select report type and department. Generates reports from <span class="inline-code">output/report_generator.py</span> and renders them as Pandas DataFrames + Plotly charts. Reports can be saved to the database.</li>
+      <li><strong>3_Dashboards.py</strong> — Queries the Gold layer directly and renders 6 charts: horizontal bar, scatter bubble, grouped bar, treemap, time-series line, compliance heatmap, and skill gap bar.</li>
+      <li><strong>4_Flow_Library.py</strong> — Shows saved flows from the DB. Has a form to create new flows manually and buttons to use 4 pre-built templates.</li>
+      <li><strong>5_Admin.py</strong> — Has 4 tabs: Setup (runs scripts), Configuration (shows .env status), Agent Memory (shows episodic/procedural memory tables), Data Explorer (SQL table browser).</li>
+    </ul>
+
+    <hr class="divider">
+
+    <h3 id="tier2">Tier 2 — Ingestion (<span class="inline-code">scripts/</span>)</h3>
+    <p>Two scripts handle all data initialisation:</p>
+
+    <h4>generate_mock_data.py</h4>
+    <p>Uses the <strong>Faker</strong> library (seeded for reproducibility) to generate:</p>
+    <ul>
+      <li>500 employees across 8 departments with realistic names, roles, managers, locations, hire dates</li>
+      <li>3,700+ LMS enrollments — required courses have 95% enroll rate; optional courses 20–70%</li>
+      <li>Completion status (Completed/In Progress/Not Started) with realistic score distributions</li>
+      <li>2,200+ skill assessments with self-rated and manager-rated scores for gap analysis</li>
+      <li>Training budget by department (8 rows)</li>
+      <li>15-course catalog with categories (Compliance, Technical, Leadership, etc.)</li>
+    </ul>
+
+    <h4>setup_db.py</h4>
+    <p>Creates the SQLite database at <span class="inline-code">data/learning_agent.db</span> with these layers:</p>
+    <ul>
+      <li><strong>Bronze tables:</strong> Raw landing zone (bronze_employees, bronze_enrollments)</li>
+      <li><strong>Silver tables:</strong> Cleaned entities — employees, lms_enrollments, course_catalog, skill_assessments, training_budget</li>
+      <li><strong>Gold tables:</strong> Pre-aggregated — gold_compliance_summary, gold_dept_learning_kpis, gold_skill_gap</li>
+      <li><strong>Agent memory tables:</strong> agent_memory_episodic, agent_memory_procedural, generated_flows, generated_reports</li>
+    </ul>
+
+    <hr class="divider">
+
+    <h3 id="tier3">Tier 3 — MCP Servers (<span class="inline-code">mcp_servers/</span>)</h3>
+    <p>Each server is a <strong>FastMCP</strong> application. Tools are decorated with <span class="inline-code">@mcp.tool()</span> and have typed parameters. In this MVP they run in-process; in production each would be a separate HTTP microservice.</p>
+
+    <h4>lms_server.py — 6 tools</h4>
+    <ul>
+      <li><span class="inline-code">get_completions(department, course_id, status)</span> — filtered LMS completion records joined with employee data</li>
+      <li><span class="inline-code">get_enrollments(employee_id)</span> — all courses for one employee</li>
+      <li><span class="inline-code">get_course_catalog(category)</span> — course list</li>
+      <li><span class="inline-code">get_compliance_summary(department)</span> — required-course completion rates</li>
+      <li><span class="inline-code">get_dept_kpis(department)</span> — full KPI row from Gold layer</li>
+      <li><span class="inline-code">get_overdue_learners(department)</span> — employees not done with required courses</li>
+    </ul>
+
+    <h4>hr_server.py — 6 tools</h4>
+    <ul>
+      <li><span class="inline-code">get_employee_profile(employee_id)</span> — profile + skills + training history</li>
+      <li><span class="inline-code">get_org_hierarchy(department)</span> — employee tree with manager links</li>
+      <li><span class="inline-code">get_role_skills(role)</span> — skill distribution for a job role</li>
+      <li><span class="inline-code">get_workforce_summary(department)</span> — headcount by status</li>
+      <li><span class="inline-code">get_skill_gap_report(department)</span> — manager vs self-rating divergence from Gold</li>
+      <li><span class="inline-code">search_employees(name, department, role)</span> — free-text search</li>
+    </ul>
+
+    <h4>powerbi_server.py — 4 tools</h4>
+    <ul>
+      <li><span class="inline-code">list_datasets()</span> — available semantic model datasets</li>
+      <li><span class="inline-code">query_semantic_model(dataset_name, filters)</span> — query Gold layer by dataset name</li>
+      <li><span class="inline-code">create_report(title, dataset, chart_type)</span> — returns a report definition (mock embed URL)</li>
+      <li><span class="inline-code">embed_visual(visual_type, dataset, x_axis, y_axis)</span> — visual embed config</li>
+    </ul>
+
+    <h4>automate_server.py — 4 tools</h4>
+    <ul>
+      <li><span class="inline-code">list_flows()</span> — saved flows + available templates</li>
+      <li><span class="inline-code">trigger_flow(flow_id)</span> — simulated flow run</li>
+      <li><span class="inline-code">create_flow(name, description, trigger_type, actions)</span> — generates PA flow JSON + saves to DB</li>
+      <li><span class="inline-code">get_flow_from_template(template_id)</span> — instantiate a named template</li>
+    </ul>
+
+    <hr class="divider">
+
+    <h3 id="tier4">Tier 4 — Agents (<span class="inline-code">agents/</span>)</h3>
+
+    <h4>llm_client.py</h4>
+    <p>Wraps the Azure OpenAI client. If <span class="inline-code">AZURE_OPENAI_ENDPOINT</span> and <span class="inline-code">AZURE_OPENAI_API_KEY</span> are set in <span class="inline-code">.env</span>, it uses the real API. Otherwise it returns a clear mock message explaining the missing config. Keeps the app fully functional for demos without credentials.</p>
+
+    <h4>tools_registry.py</h4>
+    <p>All 18 tools are defined here in OpenAI function-calling JSON format (the <span class="inline-code">"type": "function"</span> schema). This is what gets passed to <span class="inline-code">chat.completions.create(tools=...)</span>.</p>
+
+    <h4>tool_executor.py</h4>
+    <p>A single <span class="inline-code">TOOL_MAP</span> dictionary maps tool names to Python functions. When the LLM decides to call a tool, the orchestrator calls <span class="inline-code">execute_tool_call(name, arguments)</span> which looks up and calls the function.</p>
+
+    <h4>orchestrator.py — The Brain</h4>
+    <p>This is the main agent loop. For each user message it:</p>
+    <ol>
+      <li>Recalls similar past queries from ChromaDB episodic memory</li>
+      <li>Builds a message list: system prompt + last 10 conversation turns + user message</li>
+      <li>Calls Azure OpenAI with all 18 tools available</li>
+      <li>If the model returns tool calls → executes them → appends results → calls LLM again</li>
+      <li>Repeats up to 6 turns (prevents infinite loops)</li>
+      <li>Returns the final answer + saves episode to memory</li>
+    </ol>
+
+    <hr class="divider">
+
+    <h3 id="tier5">Tier 5 — Memory (<span class="inline-code">memory/</span>)</h3>
+
+    <h4>agent_memory.py</h4>
+    <p>Three memory types:</p>
+    <ul>
+      <li><strong>Episodic:</strong> Every query+response saved to SQLite <span class="inline-code">agent_memory_episodic</span>. Also indexed into ChromaDB <span class="inline-code">episodic_memory</span> collection for semantic recall. The <span class="inline-code">recall_similar_episodes(query)</span> function does vector search to find past relevant conversations.</li>
+      <li><strong>Semantic (org knowledge):</strong> Each department's Gold KPI row is embedded and stored in ChromaDB <span class="inline-code">org_knowledge</span> collection. Called once on first use. Enables NL grounding — the agent knows org facts without always querying the DB.</li>
+      <li><strong>Procedural:</strong> Default "recipes" in SQLite — steps for compliance_report, skill_gap_analysis, weekly_briefing workflows.</li>
+    </ul>
+
+    <h4>knowledge_graph.py</h4>
+    <p>Builds a <strong>NetworkX DiGraph</strong> from the Silver layer on first call (cached). Nodes: employees, departments, skills. Edges: belongs_to, has_skill, manages. Provides: <span class="inline-code">employees_with_skill()</span>, <span class="inline-code">skill_gap_for_department()</span>, <span class="inline-code">shortest_skill_path(employee_id, target_skill)</span>, <span class="inline-code">get_team_under_manager()</span>.</p>
+
+    <hr class="divider">
+
+    <h3 id="tier6">Tier 6 — Output (<span class="inline-code">output/</span>)</h3>
+
+    <h4>report_generator.py</h4>
+    <p>Three report builders that query the database and return structured dict objects (not HTML — the UI renders them with Plotly):</p>
+    <ul>
+      <li><span class="inline-code">generate_compliance_report(department)</span> — compliance summary + overdue learners + at-risk departments</li>
+      <li><span class="inline-code">generate_learning_kpi_report(department)</span> — full KPI breakdown + top/bottom performers</li>
+      <li><span class="inline-code">generate_skill_gap_report(department)</span> — gap analysis with overrated/underrated skills</li>
+    </ul>
+
+    <h4>proactive_engine.py</h4>
+    <p><span class="inline-code">daily_scan()</span> queries the Gold layer for depts below 80% compliance threshold and teams with more than 5 overdue learners. Returns an alerts list with severity levels. <span class="inline-code">get_manager_briefing(manager_id)</span> generates a personalised team summary.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 4: DATA FLOW -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="dataflow">
+    <div class="section-title">
+      <div class="section-num">4</div>
+      <div><h2>Data Flow</h2><p>How data moves through the 7 tiers end-to-end</p></div>
+    </div>
+
+    <h3>Ingestion Flow (one-time setup)</h3>
+    <pre><code><span class="cm"># Step 1: generate_mock_data.py</span>
+Faker library → <span class="str">employees.csv, lms_enrollments.csv, skill_assessments.csv</span>
+                <span class="str">training_budget.csv, course_catalog.csv</span>
+
+<span class="cm"># Step 2: setup_db.py</span>
+CSV files → <span class="fn">pd.read_csv()</span> → <span class="fn">df.to_sql()</span> → SQLite Silver tables
+Silver tables → <span class="fn">SQL aggregation queries</span> → SQLite Gold tables
+Gold KPIs → text serialised → <span class="fn">ChromaDB.add()</span> → org_knowledge vector collection</code></pre>
+
+    <h3>Query Flow (every chat message)</h3>
+    <pre><code><span class="cm"># User types: "What is Engineering compliance rate?"</span>
+
+User message
+  → <span class="fn">orchestrator.run()</span>
+    → <span class="fn">recall_similar_episodes()</span>           <span class="cm"># ChromaDB similarity search</span>
+    → Build messages: [system_prompt + history + user_message]
+    → <span class="fn">llm_client.chat(messages, tools=ALL_TOOLS)</span>   <span class="cm"># Azure OpenAI call</span>
+      → LLM decides: call <span class="str">get_dept_kpis(department="Engineering")</span>
+    → <span class="fn">tool_executor.execute_tool_call("get_dept_kpis", args)</span>
+      → <span class="fn">mcp_servers/lms_server.get_dept_kpis()</span>
+        → <span class="fn">db_tools.query_one()</span> → SQLite Gold table → dict
+    → Tool result appended to messages
+    → <span class="fn">llm_client.chat(messages)</span>              <span class="cm"># Second LLM call with data</span>
+      → LLM generates: "Engineering has 84.2% compliance rate..."
+    → <span class="fn">memory.save_episode()</span>                  <span class="cm"># SQLite + ChromaDB</span>
+  ← Returns: {response, tool_calls_made, session_id, intent}</code></pre>
+
+    <h3 id="mockdata">Mock Data Summary</h3>
+    <table class="gap-table">
+      <tr><th>Dataset</th><th>Rows</th><th>Key Fields</th></tr>
+      <tr><td>employees.csv</td><td>500</td><td>employee_id, name, department, role, manager_id, hire_date, grade_level</td></tr>
+      <tr><td>lms_enrollments.csv</td><td>~3,732</td><td>enrollment_id, employee_id, course_id, status, score, is_required</td></tr>
+      <tr><td>skill_assessments.csv</td><td>~2,211</td><td>employee_id, skill, self_rated, manager_rated, proficiency_level</td></tr>
+      <tr><td>training_budget.csv</td><td>8</td><td>department, budget_usd, spent_usd, headcount</td></tr>
+      <tr><td>course_catalog.csv</td><td>15</td><td>course_id, title, category, duration_h, required</td></tr>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 5: MVP VS PRODUCTION GAP -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="gaps">
+    <div class="section-title">
+      <div class="section-num">5</div>
+      <div><h2>MVP vs Production — Gap Analysis</h2><p>What is built today and what is needed for the production microservice architecture</p></div>
+    </div>
+
+    <p>The target production architecture (<span class="inline-code">learning_report_agent_microservice_plan.html</span>) uses a <strong>Hexagonal / Ports & Adapters</strong> pattern with 6 independently deployable Azure microservices. Here is where we stand:</p>
+
+    <table class="gap-table">
+      <tr>
+        <th style="width:200px">Layer</th>
+        <th>Current MVP (Local)</th>
+        <th>Production Target (Azure)</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td><strong>Architecture pattern</strong></td>
+        <td>Monolithic Python app — all in one process</td>
+        <td>Hexagonal/Ports & Adapters — 6 independent microservices with formal interface contracts</td>
+        <td class="partial">Partial</td>
+      </tr>
+      <tr>
+        <td><strong>Data sources</strong></td>
+        <td>CSV/SQLite mock files generated by Faker</td>
+        <td>Live API connectors: Cornerstone LMS (REST+OAuth), SAP SF HR (OData), SharePoint (Graph API), Workday</td>
+        <td class="missing">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Inbound adapters</strong></td>
+        <td>Direct DB calls inside MCP servers</td>
+        <td>6 Azure Functions: LMSAdapter, SharePointAdapter, HRAdapter, PowerBIAdapter, ExcelAdapter, TeamsAdapter</td>
+        <td class="missing">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Transport / messaging</strong></td>
+        <td>Synchronous in-process function calls</td>
+        <td>Azure Service Bus queues + Event Hub streaming for async, decoupled delivery</td>
+        <td class="missing">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Ingestion / medallion</strong></td>
+        <td>Python scripts loading CSVs to SQLite Bronze/Silver/Gold</td>
+        <td>Azure Data Factory pipelines → Microsoft Fabric → Dataverse entities (Bronze→Silver→Gold)</td>
+        <td class="partial">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Agent orchestration</strong></td>
+        <td>Single Python orchestrator, Azure OpenAI function calling, local MCP servers</td>
+        <td>Azure AI Foundry multi-agent hosting + Copilot Studio conversational interface</td>
+        <td class="partial">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Memory — vector store</strong></td>
+        <td>ChromaDB (local persistent files)</td>
+        <td>Azure Cosmos DB with vector index (DiskANN) via Azure AI Search</td>
+        <td class="partial">Phase 3</td>
+      </tr>
+      <tr>
+        <td><strong>Memory — knowledge graph</strong></td>
+        <td>NetworkX in-memory graph rebuilt on every startup</td>
+        <td>Cosmos DB Gremlin API — persistent, queryable graph with Gremlin traversal language</td>
+        <td class="partial">Phase 3</td>
+      </tr>
+      <tr>
+        <td><strong>Predictive ML</strong></td>
+        <td>Stub only — no real model</td>
+        <td>Azure ML pipelines: compliance forecaster, skill gap projector, attrition risk model</td>
+        <td class="missing">Phase 3</td>
+      </tr>
+      <tr>
+        <td><strong>Power BI output</strong></td>
+        <td>Simulated — returns mock embed URLs and report definitions</td>
+        <td>Power BI REST API + Tabular Model API to programmatically create/publish real reports</td>
+        <td class="partial">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Power Automate output</strong></td>
+        <td>Generates flow JSON saved to SQLite — not deployed to PA</td>
+        <td>Power Automate Management API — actually creates and activates flows in the tenant</td>
+        <td class="partial">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Outbound channels</strong></td>
+        <td>None — output is only in the web UI</td>
+        <td>TeamsNotifier (Bot+Adaptive Cards), OutlookAdapter (Graph API), WebhookAdapter, ServiceNow ticketing</td>
+        <td class="missing">Phase 2-3</td>
+      </tr>
+      <tr>
+        <td><strong>Authentication</strong></td>
+        <td>None — open local app</td>
+        <td>Entra ID SSO + MFA, RBAC roles, Power BI Row-Level Security enforced per user</td>
+        <td class="missing">Phase 2</td>
+      </tr>
+      <tr>
+        <td><strong>Audit & compliance</strong></td>
+        <td>None</td>
+        <td>Immutable audit log per action, Microsoft Purview data lineage, GDPR/SOC2 reports</td>
+        <td class="missing">Phase 4</td>
+      </tr>
+      <tr>
+        <td><strong>Observability</strong></td>
+        <td>Streamlit logs only</td>
+        <td>Azure App Insights, per-query cost tracking, hallucination/grounding scores, pipeline health dashboard</td>
+        <td class="missing">Phase 4</td>
+      </tr>
+      <tr>
+        <td><strong>UI framework</strong></td>
+        <td>Streamlit (fine for MVP/demos)</td>
+        <td>React + Fluent UI (Teams-native), Power Pages admin console, embedded Power BI visuals</td>
+        <td class="partial">Phase 4</td>
+      </tr>
+      <tr>
+        <td><strong>CI/CD</strong></td>
+        <td>None — manual run</td>
+        <td>Azure DevOps pipelines, per-service independent deploy, prompt versioning + eval regression suite</td>
+        <td class="missing">Phase 4</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>Key Design Principle Already Established</strong>
+      <p>The MVP was intentionally built so each layer communicates via function calls that mirror the target interface contracts. Swapping SQLite for Dataverse, ChromaDB for Cosmos DB, or mock adapters for real Azure Functions requires changing only the implementation behind the interface — not the agent or orchestration logic.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 6: PHASE PLAN -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="phases">
+    <div class="section-title">
+      <div class="section-num">6</div>
+      <div><h2>MVP → Production Phase Plan</h2><p>Stepwise upgrade path from current local build to full Azure deployment</p></div>
+    </div>
+
+    <table class="phase-table">
+      <tr>
+        <th style="width:150px">Phase</th>
+        <th>What to Build</th>
+        <th>Technologies</th>
+        <th>Est. Effort</th>
+      </tr>
+      <tr>
+        <td class="ph-1">Phase 1<br>(NOW — Local)</td>
+        <td>
+          <strong>What we have today:</strong><br>
+          All 7 tiers running locally. Streamlit UI. SQLite Bronze/Silver/Gold. ChromaDB vector store.
+          NetworkX knowledge graph. 18 MCP tools. Azure OpenAI agents.
+          Mock data with 500 employees + 3,700 enrollments.
+        </td>
+        <td>Python 3.11, Streamlit, SQLite, ChromaDB, NetworkX, Faker, FastMCP, Azure OpenAI</td>
+        <td>✅ Done</td>
+      </tr>
+      <tr>
+        <td class="ph-1">Phase 1+<br>(Interface Contracts)</td>
+        <td>
+          Refactor layers to use abstract base classes (ports):<br>
+          • <span class="inline-code">SourceAdapter</span> ABC with mock and real implementations<br>
+          • <span class="inline-code">DataStore</span> ABC swappable between SQLite ↔ Dataverse<br>
+          • <span class="inline-code">Memory</span> ABC swappable between SQLite/Chroma ↔ Cosmos DB<br>
+          • Mock JWT authentication middleware<br>
+          • Structured JSON logging with grounding scores
+        </td>
+        <td>Python ABCs, PyJWT, structlog</td>
+        <td>3–4 days</td>
+      </tr>
+      <tr>
+        <td class="ph-2">Phase 2<br>(Cloud MVP)</td>
+        <td>
+          • Azure Functions for each source adapter (LMS, HR, SharePoint, Excel)<br>
+          • Azure Service Bus as transport layer between adapters and core<br>
+          • Azure Data Factory pipelines (Bronze→Silver→Gold)<br>
+          • Microsoft Dataverse as Silver entity store<br>
+          • Power BI REST API — real report creation and embedding<br>
+          • Power Automate Management API — actual flow deployment<br>
+          • Entra ID authentication + RBAC<br>
+          • Azure Key Vault for secrets
+        </td>
+        <td>Azure Functions, Service Bus, ADF, Dataverse, Power BI REST, PA Management API, Entra ID, Key Vault</td>
+        <td>2–3 weeks</td>
+      </tr>
+      <tr>
+        <td class="ph-3">Phase 3<br>(Intelligence)</td>
+        <td>
+          • Cosmos DB (NoSQL + Gremlin API) — replace SQLite/ChromaDB/NetworkX<br>
+          • Azure ML pipeline: compliance forecaster model (trained on historical data)<br>
+          • Teams Bot Framework outbound adapter (Adaptive Cards notifications)<br>
+          • Outlook Graph API adapter (email delivery + calendar scheduling)<br>
+          • Azure AI Foundry multi-agent hosting (replace local orchestrator)<br>
+          • Copilot Studio conversational agent definition
+        </td>
+        <td>Cosmos DB (NoSQL+Gremlin+Vector), Azure ML, Bot Framework, Graph API, AI Foundry, Copilot Studio</td>
+        <td>2–3 weeks</td>
+      </tr>
+      <tr>
+        <td class="ph-4">Phase 4<br>(Production)</td>
+        <td>
+          • React + Fluent UI frontend (Teams-native app)<br>
+          • Azure App Insights — hallucination detection, cost per query, pipeline health<br>
+          • Microsoft Purview — data lineage + sensitivity labels<br>
+          • Immutable audit logs (GDPR/SOC2 compliance)<br>
+          • Azure DevOps CI/CD — per-service pipelines + prompt regression evals<br>
+          • High availability + disaster recovery across regions<br>
+          • Memory curation pipeline (human-in-the-loop review of agent memory)
+        </td>
+        <td>React, Fluent UI, App Insights, Azure Monitor, Purview, Azure DevOps, GitHub Actions</td>
+        <td>3–4 weeks</td>
+      </tr>
+    </table>
+
+    <h3 id="microservice">Microservice Ownership (Production)</h3>
+    <p>The production architecture splits the codebase into 6 independently owned services:</p>
+    <table class="gap-table">
+      <tr><th>Service</th><th>Owns</th><th>Interface Contract</th></tr>
+      <tr><td><strong>Adapter & Integration</strong></td><td>All source adapters, transport layer, mock fixtures</td><td><span class="inline-code">SourceAdapter.fetch(time_range) → list[Event]</span></td></tr>
+      <tr><td><strong>Data Foundation</strong></td><td>ADF pipelines, Dataverse schema, Power BI semantic model</td><td><span class="inline-code">DataStore.query(entity, filter) → DataFrame</span></td></tr>
+      <tr><td><strong>Agent Orchestration</strong></td><td>5 agents, Copilot Studio, MCP servers, prompt engineering</td><td><span class="inline-code">Agent.handle(intent, context) → Response</span></td></tr>
+      <tr><td><strong>Memory & Intelligence</strong></td><td>Cosmos DB schema, embeddings pipeline, knowledge graph, Azure ML</td><td><span class="inline-code">Memory.recall(query, type) → Context</span></td></tr>
+      <tr><td><strong>Output & Generation</strong></td><td>Power BI REST, PA Management API, outbound adapters, React UI</td><td><span class="inline-code">Output.render(spec, channel) → Artifact</span></td></tr>
+      <tr><td><strong>Platform & Observability</strong></td><td>Entra ID auth, Key Vault, App Insights, CI/CD, audit logs</td><td><span class="inline-code">Platform.authorize(user, resource) → bool</span></td></tr>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 7: SETUP GUIDE -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div class="section" id="setup">
+    <div class="section-title">
+      <div class="section-num">7</div>
+      <div><h2>Setup Guide — New Laptop / Fresh Machine</h2><p>Complete step-by-step instructions to run the project from scratch on any Windows or Mac machine</p></div>
+    </div>
+
+    <div class="warn-box">
+      <strong>Before you start — what you need</strong>
+      <ul>
+        <li>Windows 10/11 or macOS 12+ or Ubuntu 20.04+</li>
+        <li>Internet connection (to download packages)</li>
+        <li>~500 MB free disk space</li>
+        <li>Azure OpenAI access (optional — app works without it in mock mode)</li>
+      </ul>
+    </div>
+
+    <h3 id="prereqs">Step 0 — Install Prerequisites</h3>
+
+    <div class="step-box">
+      <div class="step-num">Step 0A — Install Python 3.11</div>
+      <h4>Windows</h4>
+      <p>Download the installer from <strong>python.org/downloads</strong> — choose Python 3.11.x.</p>
+      <p>During installation: ✅ tick <strong>"Add Python to PATH"</strong> before clicking Install.</p>
+      <h4>Mac</h4>
+    </div>
+    <pre><code><span class="cm"># Mac — using Homebrew (install Homebrew first from brew.sh if needed)</span>
+brew install python@3.11
+
+<span class="cm"># Verify installation (Windows: Command Prompt or PowerShell, Mac: Terminal)</span>
+python --version
+<span class="cm"># Should show: Python 3.11.x</span>
+
+python -m pip --version
+<span class="cm"># Should show: pip 24.x ...</span></code></pre>
+
+    <div class="step-box">
+      <div class="step-num">Step 0B — Install Git (if not already installed)</div>
+      <h4>Windows</h4>
+      <p>Download from <strong>git-scm.com</strong> and install with defaults.</p>
+      <h4>Mac</h4>
+    </div>
+    <pre><code><span class="cm"># Mac</span>
+brew install git
+
+<span class="cm"># Verify</span>
+git --version</code></pre>
+
+    <h3 id="install">Step 1 — Copy the Project</h3>
+
+    <div class="step-box">
+      <div class="step-num">Option A — Copy folder from USB / shared drive</div>
+      <h4>Simply copy the entire <span class="inline-code">learning_report_agent</span> folder to the new machine.</h4>
+      <p>Recommended location:</p>
+      <ul>
+        <li>Windows: <span class="inline-code">C:\Projects\learning_report_agent\</span></li>
+        <li>Mac/Linux: <span class="inline-code">~/projects/learning_report_agent/</span></li>
+      </ul>
+      <p>The <span class="inline-code">data/</span> folder and any <span class="inline-code">.db</span> files do <strong>not</strong> need to be copied — they are regenerated from scripts.</p>
+    </div>
+
+    <div class="step-box">
+      <div class="step-num">Option B — Clone from Git (if you push it to GitHub/Azure DevOps)</div>
+    </div>
+    <pre><code>git clone https://github.com/YOUR-ORG/learning-report-agent.git
+cd learning-report-agent</code></pre>
+
+    <h3>Step 2 — Install Python Dependencies</h3>
+
+    <p>Open a terminal/command prompt <strong>in the project folder</strong> and run:</p>
+    <pre><code><span class="cm"># Navigate to the project folder (adjust path as needed)</span>
+<span class="cm"># Windows PowerShell:</span>
+cd C:\Projects\learning_report_agent
+
+<span class="cm"># Mac/Linux Terminal:</span>
+cd ~/projects/learning_report_agent
+
+<span class="cm"># Install all dependencies</span>
+pip install -r requirements.txt
+
+<span class="cm"># This installs: streamlit, fastapi, pandas, chromadb, networkx,</span>
+<span class="cm"># openai, faker, mcp, plotly, scikit-learn, openpyxl, and more.</span>
+<span class="cm"># Takes 2–5 minutes depending on internet speed.</span></code></pre>
+
+    <div class="warn-box">
+      <strong>If pip install fails with "conflicting dependencies"</strong>
+      <p>Try creating a virtual environment first:</p>
+    </div>
+    <pre><code><span class="cm"># Create a virtual environment</span>
+python -m venv venv
+
+<span class="cm"># Activate it</span>
+<span class="cm"># Windows:</span>
+venv\Scripts\activate
+<span class="cm"># Mac/Linux:</span>
+source venv/bin/activate
+
+<span class="cm"># Now install (the venv has a clean slate)</span>
+pip install -r requirements.txt</code></pre>
+
+    <h3 id="azuresetup">Step 3 — Configure Azure OpenAI (Optional but Recommended)</h3>
+
+    <p>Without this the app works in <strong>mock mode</strong> — the UI, reports, dashboards, and flow builder all work, but the Chat Agent returns a placeholder message instead of real AI answers.</p>
+
+    <div class="step-box">
+      <div class="step-num">3A — Create the .env file</div>
+      <h4>Copy the example file:</h4>
+    </div>
+    <pre><code><span class="cm"># Windows PowerShell:</span>
+copy .env.example .env
+
+<span class="cm"># Mac/Linux:</span>
+cp .env.example .env</code></pre>
+
+    <div class="step-box">
+      <div class="step-num">3B — Fill in your Azure OpenAI details</div>
+      <h4>Open .env in any text editor (Notepad, VS Code, etc.) and fill in:</h4>
+    </div>
+    <pre><code>AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE-NAME.openai.azure.com/
+AZURE_OPENAI_API_KEY=your-32-character-api-key-here
+AZURE_OPENAI_API_VERSION=2024-02-01
+AZURE_OPENAI_DEPLOYMENT=gpt-4o
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large</code></pre>
+
+    <div class="step-box">
+      <div class="step-num">3C — Where to find these values in Azure Portal</div>
+      <ul>
+        <li>Go to <strong>portal.azure.com</strong> → search "Azure OpenAI" → select your resource</li>
+        <li><strong>Endpoint:</strong> Overview page → "Endpoint" field</li>
+        <li><strong>API Key:</strong> Keys and Endpoint → Key 1 or Key 2</li>
+        <li><strong>Deployment name:</strong> Azure AI Studio → Deployments → your GPT-4o deployment name</li>
+        <li><strong>Embedding deployment:</strong> Azure AI Studio → Deployments → your text-embedding-3-large deployment name</li>
+      </ul>
+    </div>
+
+    <h3>Step 4 — Generate Mock Data and Setup Database</h3>
+
+    <pre><code><span class="cm"># Make sure you are in the project folder with the venv active (if using venv)</span>
+
+<span class="cm"># Step 4A: Generate mock data (creates CSV files in data/mock/)</span>
+python scripts/generate_mock_data.py
+
+<span class="cm"># Expected output:</span>
+<span class="cm"># Generating mock data...</span>
+<span class="cm">#   employees.csv — 500 rows</span>
+<span class="cm">#   lms_enrollments.csv — 3732 rows</span>
+<span class="cm">#   skill_assessments.csv — 2211 rows</span>
+<span class="cm">#   training_budget.csv — 8 rows</span>
+<span class="cm">#   course_catalog.csv — 15 rows</span>
+
+<span class="cm"># Step 4B: Setup the database (creates SQLite + builds Gold KPIs)</span>
+python scripts/setup_db.py
+
+<span class="cm"># Expected output:</span>
+<span class="cm"># Setting up database...</span>
+<span class="cm">#   Schema created.</span>
+<span class="cm">#   Loaded 500 rows -> employees</span>
+<span class="cm">#   Loaded 3732 rows -> lms_enrollments</span>
+<span class="cm">#   ...</span>
+<span class="cm">#   Gold KPIs built.</span>
+<span class="cm">#   Database setup complete.</span></code></pre>
+
+    <h3 id="run">Step 5 — Run the Application</h3>
+
+    <h4>Option A: One-command launcher (recommended)</h4>
+    <pre><code>python start.py
+<span class="cm"># This runs generate_mock_data + setup_db + launches Streamlit</span>
+<span class="cm"># Open browser at: http://localhost:8501</span></code></pre>
+
+    <h4>Option B: Launch just the UI (after data is already set up)</h4>
+    <pre><code>python -m streamlit run ui/app.py
+<span class="cm"># Open browser at: http://localhost:8501</span>
+
+<span class="cm"># If port 8501 is in use, specify another port:</span>
+python -m streamlit run ui/app.py --server.port 8502</code></pre>
+
+    <div class="success-box">
+      <strong>You should now see the Learning Report Agent in your browser.</strong>
+      <p>Navigate to: Home (KPI scorecards) → Chat Agent (ask questions) → Reports → Dashboards → Flow Library → Admin</p>
+    </div>
+
+    <h3 id="troubleshoot">Troubleshooting Common Issues</h3>
+
+    <table class="gap-table">
+      <tr><th>Problem</th><th>Cause</th><th>Fix</th></tr>
+      <tr>
+        <td><span class="inline-code">ModuleNotFoundError: No module named 'streamlit'</span></td>
+        <td>Dependencies not installed or wrong Python environment</td>
+        <td>Run <span class="inline-code">pip install -r requirements.txt</span> again. If using venv, make sure it is activated.</td>
+      </tr>
+      <tr>
+        <td><span class="inline-code">Port 8501 is already in use</span></td>
+        <td>Another Streamlit or app is on that port</td>
+        <td>Add <span class="inline-code">--server.port 8502</span> to the run command</td>
+      </tr>
+      <tr>
+        <td>Chat Agent says "Azure OpenAI not configured"</td>
+        <td>Missing or wrong .env file</td>
+        <td>Copy <span class="inline-code">.env.example</span> to <span class="inline-code">.env</span> and fill in your Azure credentials. Restart the app.</td>
+      </tr>
+      <tr>
+        <td>Dashboards show "No data" or empty charts</td>
+        <td>Database not set up</td>
+        <td>Go to <strong>Admin → Setup</strong> and click "Generate Mock Data" then "Setup Database". Or run the scripts manually.</td>
+      </tr>
+      <tr>
+        <td><span class="inline-code">UnicodeEncodeError</span> in terminal on Windows</td>
+        <td>Windows console uses CP1252 encoding</td>
+        <td>Run <span class="inline-code">set PYTHONIOENCODING=utf-8</span> before running, or use Windows Terminal instead of Command Prompt.</td>
+      </tr>
+      <tr>
+        <td><span class="inline-code">chromadb install fails</span> on older machines</td>
+        <td>ChromaDB needs a C++ compiler on some systems</td>
+        <td>Install Visual C++ Build Tools (Windows) or <span class="inline-code">brew install cmake</span> (Mac), then retry pip install.</td>
+      </tr>
+      <tr>
+        <td>MCP server import error</td>
+        <td><span class="inline-code">mcp</span> package version mismatch</td>
+        <td>Run <span class="inline-code">pip install mcp --upgrade</span></td>
+      </tr>
+      <tr>
+        <td>App is very slow on first Chat Agent query</td>
+        <td>ChromaDB vector index being built for the first time</td>
+        <td>Normal on first run — subsequent queries are fast. The index is persisted in <span class="inline-code">data/chroma/</span>.</td>
+      </tr>
+    </table>
+
+    <hr class="divider">
+
+    <h3>Quick Reference — All Commands</h3>
+    <pre><code><span class="cm">## SETUP (first time only)</span>
+pip install -r requirements.txt         <span class="cm"># install dependencies</span>
+cp .env.example .env                    <span class="cm"># Mac/Linux</span>
+copy .env.example .env                  <span class="cm"># Windows</span>
+<span class="cm"># Edit .env with your Azure OpenAI credentials</span>
+python scripts/generate_mock_data.py    <span class="cm"># create CSV data</span>
+python scripts/setup_db.py              <span class="cm"># set up SQLite + Gold KPIs</span>
+
+<span class="cm">## RUN</span>
+python start.py                         <span class="cm"># full launcher (data + UI)</span>
+python -m streamlit run ui/app.py       <span class="cm"># UI only (if data already exists)</span>
+
+<span class="cm">## RESET DATA (regenerate all mock data from scratch)</span>
+python scripts/generate_mock_data.py
+python scripts/setup_db.py
+
+<span class="cm">## VERIFY (open in browser)</span>
+<span class="cm"># http://localhost:8501  (or 8502 if 8501 is busy)</span></code></pre>
+
+    <hr class="divider">
+
+    <h3>What the Five Pages Do — Quick User Guide</h3>
+    <table class="gap-table">
+      <tr><th>Page</th><th>What to do</th></tr>
+      <tr>
+        <td>🏠 Home</td>
+        <td>See live KPI scorecards: Active Employees, Total Enrollments, Avg Completion Rate. Links to all pages.</td>
+      </tr>
+      <tr>
+        <td>💬 Chat Agent</td>
+        <td>Type any question about learning data. Use suggested queries in the left sidebar for quick demos. Tool calls shown in expandable section below each response. Clear conversation with the sidebar button.</td>
+      </tr>
+      <tr>
+        <td>📊 Reports</td>
+        <td>Select report type (Compliance / KPI / Skill Gap) and optionally a department. Click Generate Report. Charts appear automatically. Click Save Report to persist it.</td>
+      </tr>
+      <tr>
+        <td>📈 Dashboards</td>
+        <td>Live charts auto-load from the Gold layer. Includes completion bar chart, scatter bubble, budget bar, treemap, trend line, compliance heatmap, skill gap analysis. Filter by department in the skill gap section.</td>
+      </tr>
+      <tr>
+        <td>⚡ Flow Library</td>
+        <td>Click "Use template" on any of the 4 pre-built flows to generate them. Expand a flow to see its JSON definition. Click "Run Flow" to simulate triggering it. Or build a custom flow using the form at the top.</td>
+      </tr>
+      <tr>
+        <td>⚙️ Admin</td>
+        <td>Setup tab: Generate data + Setup DB buttons with live output. Configuration tab: check Azure OpenAI status. Agent Memory tab: see past queries the agent remembered. Data Explorer tab: browse raw tables with a row limit slider.</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;padding:30px 0;color:#94a3b8;font-size:12px;">
+    <p>Learning Report Agent for Unified Analytics — MVP Documentation</p>
+    <p style="margin-top:4px;">Built: May 2026 &nbsp;·&nbsp; Python 3.11 &nbsp;·&nbsp; Phase 1 (Local MVP)</p>
+  </div>
+
+</div>
+
+<script>
+// Highlight active nav link on scroll
+const links = document.querySelectorAll('.nav-link');
+const sections = document.querySelectorAll('.section, [id]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  links.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === '#' + current) l.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

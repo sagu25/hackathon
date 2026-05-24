@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Learning Report Agent — Microservice Agentic Architecture & Implementation Plan</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',Arial,sans-serif;background:#f0f2f5;display:flex;flex-direction:column;align-items:center;padding:20px;gap:18px;}
+.section{width:1380px;background:#fff;border-radius:12px;padding:20px 18px 16px;box-shadow:0 4px 28px rgba(0,0,0,.12);}
+
+/* TITLE */
+.title-blk{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #e4e7ec;}
+.title-blk h1{font-size:20px;font-weight:700;color:#0f1923;letter-spacing:-.3px;}
+.title-blk h2{font-size:13px;font-weight:600;color:#374151;margin-top:4px;}
+.title-blk p{font-size:11px;color:#6b7280;margin-top:3px;}
+
+/* SECTION HEADINGS */
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #e4e7ec;}
+.sh-num{background:#1e293b;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.sh h2{font-size:17px;font-weight:700;color:#0f1923;}
+.sh p{font-size:11px;color:#6b7280;margin-top:1px;}
+
+/* MAIN 3-COL GRID */
+.main-grid{display:grid;grid-template-columns:172px 1fr 200px;gap:10px;}
+
+/* LEFT: LOCAL MOCK */
+.local-col{display:flex;flex-direction:column;gap:0;}
+.local-panel{border:2px solid #374151;border-radius:8px;overflow:hidden;}
+.local-panel .ph{background:#374151;color:#fff;padding:7px 8px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;text-align:center;}
+.local-panel .pb{padding:8px;display:flex;flex-direction:column;gap:6px;}
+.mock-item{border:1.5px solid #d1d5db;border-radius:7px;padding:7px 6px;background:#fff;}
+.mock-item .mh{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.mock-item .ico{font-size:18px;}
+.mock-item .nm{font-size:10.5px;font-weight:700;color:#1e293b;}
+.mock-item .sb{font-size:9.5px;color:#6b7280;line-height:1.35;}
+.mock-purpose{border:1.5px dashed #9ca3af;border-radius:7px;padding:8px;background:#f9fafb;margin-top:2px;}
+.mock-purpose h5{font-size:9.5px;font-weight:700;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.mock-purpose p{font-size:9px;color:#6b7280;line-height:1.5;}
+.phase-panel{border:2px solid #0891b2;border-radius:8px;overflow:hidden;margin-top:8px;}
+.phase-panel .ph{background:#0891b2;color:#fff;padding:7px 8px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.phase-panel .pb{padding:8px;display:flex;flex-direction:column;gap:5px;}
+.phase-item{border-radius:6px;padding:6px 7px;}
+.ph1{background:#dbeafe;border-left:3px solid #2563eb;}
+.ph2{background:#dcfce7;border-left:3px solid #16a34a;}
+.ph3{background:#fef3c7;border-left:3px solid #d97706;}
+.ph4{background:#f3e8ff;border-left:3px solid #9333ea;}
+.phase-item h5{font-size:9.5px;font-weight:700;color:#1e293b;}
+.phase-item p{font-size:9px;color:#4b5563;line-height:1.4;margin-top:2px;}
+
+/* CENTER: MAIN ARCH */
+.arch-col{display:flex;flex-direction:column;gap:5px;}
+.sec{border-radius:8px;padding:9px 10px;border:2px solid;}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:center;}
+.sec-row{display:flex;gap:5px;}
+.arr{text-align:center;color:#6b7280;font-size:14px;line-height:1.2;margin:2px 0;}
+.arr-lbl{font-size:9.5px;color:#6b7280;text-align:center;margin-top:1px;}
+
+.s-ext{border-color:#1d4ed8;background:#eff6ff;}
+.s-ext .sec-title{color:#1d4ed8;}
+.ext-icons{display:flex;justify-content:space-around;align-items:center;padding:4px 0;}
+.ext-icon{text-align:center;flex:1;}
+.ext-icon .ico{font-size:24px;display:block;margin-bottom:2px;}
+.ext-icon span{font-size:9px;color:#1e40af;font-weight:600;display:block;}
+.ext-icon .sub{font-size:8.5px;color:#6b7280;font-weight:400;}
+
+.inbound-wrap{display:flex;gap:0;border:2px solid #3b82f6;border-radius:8px;overflow:hidden;}
+.inbound-lbl{background:#1d4ed8;color:#fff;writing-mode:vertical-rl;transform:rotate(180deg);padding:10px 6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;min-width:28px;}
+.inbound-inner{flex:1;display:flex;flex-direction:column;gap:0;}
+.s-src{border:none;border-radius:0;background:#eff6ff;border-bottom:1.5px solid #bfdbfe;}
+.s-src .sec-title{color:#1d4ed8;padding:7px 10px 0;margin-bottom:6px;}
+.s-trn{border:none;border-radius:0;background:#e0f2fe;}
+.s-trn .sec-title{color:#0369a1;padding:7px 10px 0;margin-bottom:6px;}
+.inbound-inner .sec{padding:0 10px 9px;}
+
+.adapter-row{display:flex;gap:5px;padding:0 2px 8px;}
+.adapter{flex:1;border:1.5px solid;border-radius:6px;padding:5px 6px;text-align:center;}
+.adapter .aic{font-size:14px;display:block;margin-bottom:2px;}
+.adapter .anm{font-size:9.5px;font-weight:700;display:block;}
+.adapter .asb{font-size:8.5px;color:#6b7280;display:block;margin-top:1px;}
+.a-blue{border-color:#93c5fd;background:#dbeafe;}
+.a-cyan{border-color:#67e8f9;background:#cffafe;}
+
+.s-core{border:2.5px dashed #6b7280;background:#f8fafc;}
+.s-core .sec-title{color:#374151;}
+.core-inner{display:flex;gap:5px;align-items:stretch;}
+.core-comp{flex:1;border:1.5px solid #d1d5db;border-radius:8px;padding:8px 8px 7px;background:#fff;text-align:center;}
+.core-comp .ci{font-size:22px;display:block;margin-bottom:4px;}
+.core-comp h5{font-size:10.5px;font-weight:700;color:#1e293b;margin-bottom:4px;}
+.core-comp p{font-size:9px;color:#4b5563;line-height:1.45;}
+.core-arr{display:flex;align-items:center;color:#6b7280;font-size:16px;flex-shrink:0;padding:0 2px;}
+
+.s-out{border-color:#dc2626;background:#fff7f7;}
+.s-out .sec-title{color:#dc2626;}
+.out-adapter{flex:1;border:1.5px solid #fca5a5;border-radius:6px;padding:5px 6px;background:#fee2e2;text-align:center;}
+.out-adapter .aic{font-size:18px;display:block;margin-bottom:2px;}
+.out-adapter .anm{font-size:9.5px;font-weight:700;color:#7f1d1d;display:block;}
+.out-adapter .asb{font-size:8.5px;color:#b91c1c;display:block;margin-top:1px;}
+
+.split-row{display:flex;gap:8px;}
+.s-data{border-color:#d97706;background:#fffbeb;flex:3;}
+.s-data .sec-title{color:#b45309;}
+.s-act{border-color:#16a34a;background:#f0fdf4;flex:1.4;}
+.s-act .sec-title{color:#15803d;}
+.data-store{flex:1;border:1.5px solid #fde68a;border-radius:6px;padding:7px 7px;background:#fff;text-align:center;}
+.data-store .ci{font-size:18px;display:block;margin-bottom:3px;}
+.data-store h5{font-size:10px;font-weight:700;color:#78350f;}
+.data-store p{font-size:8.5px;color:#92400e;margin-top:2px;}
+.act-item{display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid #bbf7d0;}
+.act-item:last-child{border-bottom:none;}
+.act-item .ck{width:12px;height:12px;background:#16a34a;border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.act-item .ck::after{content:'✓';color:#fff;font-size:8px;line-height:1;}
+.act-item span{font-size:10px;color:#14532d;font-weight:500;}
+
+.s-obs{border-color:#0891b2;background:#ecfeff;}
+.s-obs .sec-title{color:#0e7490;}
+.obs-item{flex:1;border:1.5px solid #a5f3fc;border-radius:6px;padding:6px 7px;background:#fff;text-align:center;}
+.obs-item .ci{font-size:16px;display:block;margin-bottom:3px;}
+.obs-item h5{font-size:10px;font-weight:700;color:#0e7490;}
+.obs-item p{font-size:8.5px;color:#155e75;margin-top:2px;line-height:1.3;}
+
+/* RIGHT PANEL */
+.right-col{display:flex;flex-direction:column;gap:7px;}
+.rp{border:1.5px solid #d1d5db;border-radius:8px;overflow:hidden;}
+.rp .rph{background:#f1f5f9;padding:5px 9px;font-size:10px;font-weight:700;color:#1e293b;border-bottom:1px solid #e2e8f0;text-transform:uppercase;letter-spacing:.5px;}
+.rp .rpb{padding:8px 9px;}
+
+.leg-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:9.5px;color:#374151;}
+.leg-icon{width:28px;text-align:center;font-size:13px;}
+.ln-s{width:28px;height:2px;background:#374151;}
+.ln-d{width:28px;height:0;border-top:2px dashed #6b7280;}
+.ln-ev{width:28px;height:0;border-top:2px dashed #3b82f6;}
+
+.cl-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;}
+.cl-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.cl-item .txt strong{font-size:10px;color:#1e293b;display:block;}
+.cl-item .txt span{font-size:9px;color:#6b7280;line-height:1.3;}
+.dot-az{background:#0078d4;}
+.dot-lo{background:#059669;}
+
+.flow-step{display:flex;align-items:flex-start;gap:5px;margin-bottom:4px;font-size:9.5px;color:#1e293b;}
+.step-n{background:#374151;color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;margin-top:1px;}
+
+.req-item{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:9.5px;color:#1e293b;}
+.req-chk{width:13px;height:13px;background:#2563eb;border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.req-chk::after{content:'✓';color:#fff;font-size:8px;}
+
+/* ════ TEAM OWNERSHIP CARDS ════ */
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.member-card{border:2px solid;border-radius:10px;overflow:hidden;}
+.member-card .mc-head{padding:10px 12px;color:#fff;}
+.member-card .mc-head h3{font-size:13px;font-weight:700;margin-bottom:2px;}
+.member-card .mc-head .mc-num{font-size:10px;font-weight:500;opacity:.85;}
+.member-card .mc-body{padding:10px 12px;background:#fff;}
+.mc-body h6{font-size:9.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;margin-top:7px;}
+.mc-body h6:first-child{margin-top:0;}
+.mc-body ul{list-style:none;padding-left:0;}
+.mc-body ul li{font-size:10px;color:#374151;line-height:1.6;padding-left:12px;position:relative;}
+.mc-body ul li::before{content:'▸';position:absolute;left:0;color:#6b7280;font-size:9px;}
+.mc-body .iface{font-family:'JetBrains Mono',monospace;font-size:9px;background:#f3f4f6;padding:4px 6px;border-radius:4px;color:#1e293b;margin-top:3px;display:block;}
+
+.m1{border-color:#2563eb;}.m1 .mc-head{background:#2563eb;}
+.m2{border-color:#d97706;}.m2 .mc-head{background:#d97706;}
+.m3{border-color:#dc2626;}.m3 .mc-head{background:#dc2626;}
+.m4{border-color:#7c3aed;}.m4 .mc-head{background:#7c3aed;}
+.m5{border-color:#16a34a;}.m5 .mc-head{background:#16a34a;}
+.m6{border-color:#0891b2;}.m6 .mc-head{background:#0891b2;}
+
+/* ════ MOCK DATA SAMPLES ════ */
+.mock-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.mock-card{border:1.5px solid #d1d5db;border-radius:10px;overflow:hidden;}
+.mock-card .mch{background:#1e293b;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;}
+.mock-card .mch h4{font-size:12px;font-weight:700;}
+.mock-card .mch .owner{font-size:9.5px;background:#475569;padding:2px 7px;border-radius:10px;font-weight:500;}
+.mock-card .mcb{padding:10px;background:#0f172a;}
+.mock-card pre{font-family:'JetBrains Mono',monospace;font-size:10px;color:#e2e8f0;line-height:1.55;overflow-x:auto;}
+.mock-card .key{color:#7dd3fc;}
+.mock-card .str{color:#86efac;}
+.mock-card .num{color:#fbbf24;}
+.mock-card .bool{color:#f472b6;}
+.mock-card .com{color:#64748b;font-style:italic;}
+
+/* ════ LAYER DEEP DIVE ════ */
+.deep-row{display:grid;grid-template-columns:160px 1fr 1fr 1fr;gap:0;border:1.5px solid #d1d5db;border-radius:0;overflow:hidden;}
+.deep-row:first-child{border-radius:10px 10px 0 0;}
+.deep-row:last-child{border-radius:0 0 10px 10px;}
+.deep-row + .deep-row{border-top:none;}
+.deep-row.header{background:#1e293b;color:#fff;font-weight:700;}
+.deep-row.header > div{font-size:11px;padding:9px 12px;}
+.deep-row > div{padding:11px 12px;border-right:1px solid #e5e7eb;font-size:10.5px;line-height:1.5;color:#374151;}
+.deep-row > div:last-child{border-right:none;}
+.deep-row .layer-name{background:#f8fafc;font-weight:700;color:#0f172a;display:flex;flex-direction:column;justify-content:center;}
+.deep-row .layer-name .ln-sub{font-size:9px;color:#6b7280;font-weight:500;margin-top:2px;}
+.deep-row code{font-family:'JetBrains Mono',monospace;font-size:9.5px;background:#f3f4f6;padding:1px 5px;border-radius:3px;color:#0f172a;}
+
+/* ════ INTERFACE CONTRACTS ════ */
+.iface-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.iface-card{border:1.5px solid #d1d5db;border-radius:10px;overflow:hidden;}
+.iface-card .ifh{background:#f1f5f9;padding:8px 12px;border-bottom:1px solid #e2e8f0;}
+.iface-card .ifh h4{font-size:12px;font-weight:700;color:#0f172a;}
+.iface-card .ifh p{font-size:9.5px;color:#6b7280;margin-top:2px;}
+.iface-card .ifb{padding:10px 12px;background:#fafafa;}
+.iface-card pre{font-family:'JetBrains Mono',monospace;font-size:10px;color:#0f172a;line-height:1.6;}
+.iface-card .kw{color:#7c3aed;font-weight:500;}
+.iface-card .tp{color:#0891b2;}
+.iface-card .fn{color:#dc2626;}
+.iface-card .cm{color:#6b7280;font-style:italic;}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 1: MAIN HEXAGONAL ARCHITECTURE -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="title-blk">
+    <h1>Learning Report Agent for Unified Analytics — Microservice Agentic Platform</h1>
+    <h2>Hexagonal Architecture / Ports &amp; Adapters &nbsp;·&nbsp; Modular team-owned services &nbsp;·&nbsp; Azure-native</h2>
+    <p>Each layer is an independent microservice — owned by one team member, mockable end-to-end, swappable from local fixtures to Azure cloud via the adapter pattern</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- LEFT: LOCAL MOCK + PHASES -->
+    <div class="local-col">
+      <div class="local-panel">
+        <div class="ph">INTERNAL / LOCAL<br>MOCK SETUP</div>
+        <div class="pb">
+          <div class="mock-item"><div class="mh"><span class="ico">🖥️</span><span class="nm">Dev Workstation</span></div><span class="sb">VS Code + Claude Code + Azure CLI</span></div>
+          <div class="mock-item"><div class="mh"><span class="ico">🎓</span><span class="nm">Mock LMS</span></div><span class="sb">JSON fixtures — completions, enrolments, course catalog</span></div>
+          <div class="mock-item"><div class="mh"><span class="ico">📁</span><span class="nm">Mock SharePoint</span></div><span class="sb">Sample Excel trackers + metadata JSON</span></div>
+          <div class="mock-item"><div class="mh"><span class="ico">👥</span><span class="nm">Mock HR System</span></div><span class="sb">CSV employee + org hierarchy</span></div>
+          <div class="mock-item"><div class="mh"><span class="ico">📊</span><span class="nm">Mock Power BI</span></div><span class="sb">Static JSON dataset replicating semantic model</span></div>
+          <div class="mock-item"><div class="mh"><span class="ico">🤖</span><span class="nm">Azure OpenAI</span></div><span class="sb">Dev tenant — GPT-4o for agent reasoning</span></div>
+          <div class="mock-purpose"><h5>Purpose</h5><p>Each developer runs their service locally against mock data. The same adapter contract works against cloud sources later — zero code change to switch.</p></div>
+        </div>
+      </div>
+
+      <div class="phase-panel">
+        <div class="ph">IMPLEMENTATION PHASES</div>
+        <div class="pb">
+          <div class="phase-item ph1"><h5>Phase 1 — Local Dev</h5><p>Mock adapters, JSON fixtures, Azure OpenAI dev tenant. Each member builds their service in isolation.</p></div>
+          <div class="phase-item ph2"><h5>Phase 2 — Cloud MVP</h5><p>ADF pipelines, Dataverse, Copilot Studio, Power BI, Power Automate. Swap mocks for real adapters.</p></div>
+          <div class="phase-item ph3"><h5>Phase 3 — Intelligence</h5><p>MCP servers, agent memory in Cosmos DB, knowledge graph, predictive Azure ML.</p></div>
+          <div class="phase-item ph4"><h5>Phase 4 — Production</h5><p>HA, fine-tuning, full observability, memory curation pipeline, role-based rollout.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: MAIN ARCHITECTURE -->
+    <div class="arch-col">
+      <div class="sec s-ext">
+        <div class="sec-title">EXTERNAL SYSTEMS &nbsp;(Source Layer)</div>
+        <div class="ext-icons">
+          <div class="ext-icon"><span class="ico">🎓</span><span>LMS</span><span class="sub">Cornerstone / SF</span></div>
+          <div class="ext-icon"><span class="ico">📁</span><span>SharePoint</span><span class="sub">Files + Excel</span></div>
+          <div class="ext-icon"><span class="ico">👥</span><span>HR Systems</span><span class="sub">Workday / SF HR</span></div>
+          <div class="ext-icon"><span class="ico">📊</span><span>Power BI</span><span class="sub">Datasets</span></div>
+          <div class="ext-icon"><span class="ico">💬</span><span>Teams</span><span class="sub">Chat / Voice</span></div>
+          <div class="ext-icon"><span class="ico">📧</span><span>Outlook</span><span class="sub">Mail / Calendar</span></div>
+          <div class="ext-icon"><span class="ico">🗂️</span><span>Blob / Files</span><span class="sub">Azure Storage</span></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+      <div class="arr-lbl">Raw events (real-time / batch via Azure Data Factory)</div>
+
+      <div class="inbound-wrap">
+        <div class="inbound-lbl">INBOUND ADAPTERS<br>(Driving)</div>
+        <div class="inbound-inner">
+          <div class="sec s-src">
+            <div class="sec-title">SOURCE ADAPTER LAYER</div>
+            <div class="adapter-row">
+              <div class="adapter a-blue"><span class="aic">🔌</span><span class="anm">LMSAdapter</span><span class="asb">REST + OAuth</span></div>
+              <div class="adapter a-blue"><span class="aic">🔌</span><span class="anm">SharePointAdapter</span><span class="asb">Graph API</span></div>
+              <div class="adapter a-blue"><span class="aic">🔌</span><span class="anm">HRAdapter</span><span class="asb">OData / REST</span></div>
+              <div class="adapter a-blue"><span class="aic">🔌</span><span class="anm">PowerBIAdapter</span><span class="asb">REST API</span></div>
+              <div class="adapter a-blue"><span class="aic">🔌</span><span class="anm">ExcelAdapter</span><span class="asb">File parser</span></div>
+              <div class="adapter a-blue"><span class="aic">🔌</span><span class="anm">TeamsAdapter</span><span class="asb">Bot Framework</span></div>
+            </div>
+          </div>
+          <div class="arr" style="margin:2px 0;">↓</div>
+          <div class="arr-lbl" style="text-align:center;font-size:9px;color:#4b5563;margin-bottom:3px;">Normalised events</div>
+          <div class="sec s-trn">
+            <div class="sec-title">TRANSPORT ADAPTER LAYER</div>
+            <div class="adapter-row">
+              <div class="adapter a-cyan"><span class="aic">📡</span><span class="anm">APIReceiver</span><span class="asb">HTTP / Webhook</span></div>
+              <div class="adapter a-cyan"><span class="aic">📂</span><span class="anm">FileReader</span><span class="asb">Blob / SFTP</span></div>
+              <div class="adapter a-cyan"><span class="aic">📨</span><span class="anm">QueueConsumer</span><span class="asb">Service Bus</span></div>
+              <div class="adapter a-cyan"><span class="aic">📊</span><span class="anm">ODataReader</span><span class="asb">OData v4</span></div>
+              <div class="adapter a-cyan"><span class="aic">⚡</span><span class="anm">EventHubConsumer</span><span class="asb">Streaming</span></div>
+              <div class="adapter a-cyan"><span class="aic">🔗</span><span class="anm">GraphAPIReader</span><span class="asb">MS Graph</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+      <div class="arr-lbl">Delivered events</div>
+
+      <div class="sec s-core">
+        <div class="sec-title">APPLICATION CORE / DOMAIN BOUNDARY &nbsp;(Hexagonal Core)</div>
+        <div class="core-inner">
+          <div class="core-comp"><span class="ci">🏗️</span><h5>Ingestion Engine</h5><p>Schema detection<br>Identity resolution<br>Bronze → Silver<br>ADF pipelines</p></div>
+          <div class="core-arr">→</div>
+          <div class="core-comp"><span class="ci">🗄️</span><h5>Data Unification</h5><p>Dataverse entities<br>ID-resolved records<br>Gold semantic layer<br>Medallion model</p></div>
+          <div class="core-arr">→</div>
+          <div class="core-comp"><span class="ci">🤖</span><h5>Multi-Agent Orchestration</h5><p>Orchestrator, Insight<br>Report Builder, Action<br>Critic (grounding)<br>Copilot Studio + Foundry</p></div>
+          <div class="core-arr">→</div>
+          <div class="core-comp"><span class="ci">🧠</span><h5>Memory &amp; Intelligence</h5><p>Episodic + semantic<br>Knowledge graph<br>Vector search (Cosmos)<br>Predictive ML</p></div>
+          <div class="core-arr">→</div>
+          <div class="core-comp"><span class="ci">📤</span><h5>Output Engine</h5><p>Report generation<br>Flow builder<br>Narrative insights<br>Proactive briefs</p></div>
+        </div>
+      </div>
+
+      <div class="arr">↓</div>
+      <div class="arr-lbl">Action / Notification</div>
+
+      <div class="sec s-out">
+        <div class="sec-title" style="text-align:left;display:flex;align-items:center;gap:8px;">
+          <span>OUTBOUND ADAPTERS</span><span style="font-size:9.5px;color:#b91c1c;font-weight:500;">(Driven Adapters)</span>
+        </div>
+        <div class="sec-row">
+          <div class="out-adapter"><span class="aic">💬</span><span class="anm">TeamsNotifier</span><span class="asb">Bot + cards</span></div>
+          <div class="out-adapter"><span class="aic">📧</span><span class="anm">OutlookAdapter</span><span class="asb">Mail + calendar</span></div>
+          <div class="out-adapter"><span class="aic">📊</span><span class="anm">PowerBIAdapter</span><span class="asb">Embed + publish</span></div>
+          <div class="out-adapter"><span class="aic">⚡</span><span class="anm">PowerAutomateAdapter</span><span class="asb">Build + trigger</span></div>
+          <div class="out-adapter"><span class="aic">🔔</span><span class="anm">WebhookAdapter</span><span class="asb">Push events</span></div>
+          <div class="out-adapter"><span class="aic">🎫</span><span class="anm">TicketingAdapter</span><span class="asb">ServiceNow / Jira</span></div>
+        </div>
+      </div>
+      <div class="arr">↓</div>
+      <div class="arr-lbl">Store / Persist &nbsp;&amp;&nbsp; Notify / Approve / Act</div>
+
+      <div class="split-row">
+        <div class="sec s-data">
+          <div class="sec-title">DATA STORES &nbsp;(Persistence Layer)</div>
+          <div class="sec-row">
+            <div class="data-store"><span class="ci">🗃️</span><h5>Bronze Lake</h5><p>Azure Storage<br>ADF raw landing</p></div>
+            <div class="data-store"><span class="ci">🗄️</span><h5>Silver Dataverse</h5><p>Cleaned entities<br>ID-resolved</p></div>
+            <div class="data-store"><span class="ci">📈</span><h5>Gold Semantic</h5><p>Power BI models<br>Analytical layer</p></div>
+            <div class="data-store"><span class="ci">🔍</span><h5>Cosmos Vector</h5><p>Vector index +<br>semantic search</p></div>
+            <div class="data-store"><span class="ci">🧠</span><h5>Cosmos Memory</h5><p>Agent memory +<br>graph (Gremlin)</p></div>
+          </div>
+        </div>
+        <div class="sec s-act">
+          <div class="sec-title">ACTIONS &amp; RESPONSES</div>
+          <div style="padding:2px 0;">
+            <div class="act-item"><div class="ck"></div><span>Generate Report (Power BI)</span></div>
+            <div class="act-item"><div class="ck"></div><span>Build Power Automate Flow</span></div>
+            <div class="act-item"><div class="ck"></div><span>Send Proactive Brief</span></div>
+            <div class="act-item"><div class="ck"></div><span>Schedule Report Delivery</span></div>
+            <div class="act-item"><div class="ck"></div><span>Alert Manager (Threshold)</span></div>
+            <div class="act-item"><div class="ck"></div><span>Create Ticket (ServiceNow)</span></div>
+            <div class="act-item"><div class="ck"></div><span>Request Approval (Human-loop)</span></div>
+            <div class="act-item"><div class="ck"></div><span>Update Memory (Feedback)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec s-obs" style="margin-top:5px;">
+        <div class="sec-title">OBSERVABILITY &amp; OPERATIONS &nbsp;(Real-Time Need)</div>
+        <div class="sec-row">
+          <div class="obs-item"><span class="ci">📊</span><h5>Agent Monitor</h5><p>Intent, routing,<br>response quality</p></div>
+          <div class="obs-item"><span class="ci">🛡️</span><h5>Hallucination Guard</h5><p>Grounding score,<br>source citations</p></div>
+          <div class="obs-item"><span class="ci">💸</span><h5>Cost &amp; Usage</h5><p>Per-query Azure AI<br>spend tracking</p></div>
+          <div class="obs-item"><span class="ci">📋</span><h5>Audit &amp; Compliance</h5><p>Immutable logs,<br>GDPR · SOC2</p></div>
+          <div class="obs-item"><span class="ci">⚡</span><h5>Pipeline Health</h5><p>ADF latency,<br>data freshness</p></div>
+          <div class="obs-item"><span class="ci">🔒</span><h5>Security</h5><p>Entra ID · RBAC<br>Key Vault · RLS</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-col">
+      <div class="rp">
+        <div class="rph">LEGEND</div>
+        <div class="rpb">
+          <div class="leg-item"><span class="leg-icon">🔌</span><span>&lt;&lt;Adapter&gt;&gt; In / Out adapter</span></div>
+          <div class="leg-item"><span class="leg-icon">⬜</span><span>Core component — business logic</span></div>
+          <div class="leg-item"><div class="ln-s"></div><span>Data flow</span></div>
+          <div class="leg-item"><div class="ln-d"></div><span>Control / decision flow</span></div>
+          <div class="leg-item"><div class="ln-ev"></div><span>Event / message flow</span></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="rph">CLOUD DEPLOYMENT (Azure)</div>
+        <div class="rpb">
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Azure OpenAI</strong><span>GPT-4o for agent reasoning</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Azure AI Foundry</strong><span>Multi-agent hosting + flows</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Copilot Studio</strong><span>Conversational agent</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Azure Data Factory</strong><span>ETL + medallion pipeline</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Microsoft Fabric</strong><span>Unified data platform</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Dataverse</strong><span>Silver + entity store</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Power BI + Automate</strong><span>Reports + flow builder</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Cosmos DB</strong><span>Vector + graph + memory (multi-model)</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Azure ML</strong><span>Predictive models</span></div></div>
+          <div class="cl-item"><div class="dot dot-az"></div><div class="txt"><strong>Azure Key Vault</strong><span>Secret management</span></div></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="rph">LOCAL DEPLOYMENT (Dev)</div>
+        <div class="rpb">
+          <div class="cl-item"><div class="dot dot-lo"></div><div class="txt"><strong>Azure OpenAI (dev tenant)</strong><span>Same model API as prod</span></div></div>
+          <div class="cl-item"><div class="dot dot-lo"></div><div class="txt"><strong>JSON / CSV fixtures</strong><span>Mock all source systems</span></div></div>
+          <div class="cl-item"><div class="dot dot-lo"></div><div class="txt"><strong>Cosmos DB Emulator</strong><span>Local Cosmos for dev</span></div></div>
+          <div class="cl-item"><div class="dot dot-lo"></div><div class="txt"><strong>SQLite</strong><span>Local Dataverse mock</span></div></div>
+          <div class="cl-item"><div class="dot dot-lo"></div><div class="txt"><strong>Azure Functions Core Tools</strong><span>Local function runtime</span></div></div>
+          <div class="cl-item"><div class="dot dot-lo"></div><div class="txt"><strong>VS Code + Claude Code</strong><span>Agentic IDE</span></div></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="rph">KEY INTERNAL FLOWS</div>
+        <div class="rpb">
+          <div class="flow-step"><div class="step-n">1</div><span>Ingest → source adapters pull data</span></div>
+          <div class="flow-step"><div class="step-n">2</div><span>Normalise → transport layer delivers</span></div>
+          <div class="flow-step"><div class="step-n">3</div><span>Unify → Dataverse bronze→silver→gold</span></div>
+          <div class="flow-step"><div class="step-n">4</div><span>Orchestrate → agent intent routing</span></div>
+          <div class="flow-step"><div class="step-n">5</div><span>Recall → memory + graph + vector</span></div>
+          <div class="flow-step"><div class="step-n">6</div><span>Generate → report / flow / narrative</span></div>
+          <div class="flow-step"><div class="step-n">7</div><span>Act → outbound adapters deliver</span></div>
+          <div class="flow-step"><div class="step-n">8</div><span>Learn → feedback updates memory</span></div>
+        </div>
+      </div>
+      <div class="rp">
+        <div class="rph">NON-FUNCTIONAL REQS</div>
+        <div class="rpb">
+          <div class="req-item"><div class="req-chk"></div><span>Pluggable MCP adapters</span></div>
+          <div class="req-item"><div class="req-chk"></div><span>Low-latency agent response</span></div>
+          <div class="req-item"><div class="req-chk"></div><span>High availability (Azure SLA)</span></div>
+          <div class="req-item"><div class="req-chk"></div><span>Row-level security enforced</span></div>
+          <div class="req-item"><div class="req-chk"></div><span>Audit &amp; traceability</span></div>
+          <div class="req-item"><div class="req-chk"></div><span>Grounded responses</span></div>
+          <div class="req-item"><div class="req-chk"></div><span>Mock-to-cloud adapter swap</span></div>
+          <div class="req-item"><div class="req-chk"></div><span>Cost-per-query visibility</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 2: TEAM OWNERSHIP / MICROSERVICE BREAKDOWN -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sh">
+    <div class="sh-num">2</div>
+    <div>
+      <h2>Microservice Breakdown &amp; Team Ownership</h2>
+      <p>Each member owns one service end-to-end — interface contract, mock implementation, cloud implementation, and tests. No dependencies block progress.</p>
+    </div>
+  </div>
+
+  <div class="team-grid">
+    <!-- Member 1 -->
+    <div class="member-card m1">
+      <div class="mc-head">
+        <h3>🔌 Adapter &amp; Integration Service</h3>
+        <div class="mc-num">Member 1 — Data Adapters Lead</div>
+      </div>
+      <div class="mc-body">
+        <h6>Owns</h6>
+        <ul>
+          <li>All 6 source adapters (LMS, SharePoint, HR, Power BI, Excel, Teams)</li>
+          <li>Transport layer (API, file, queue, OData readers)</li>
+          <li>Mock JSON / CSV fixtures for each source</li>
+          <li>Schema mapping &amp; normalisation rules</li>
+        </ul>
+        <h6>Interface (Port)</h6>
+        <span class="iface">SourceAdapter.fetch(time_range) → list[Event]</span>
+        <h6>Tech Stack</h6>
+        <ul>
+          <li>Azure Functions (Python or C#)</li>
+          <li>Microsoft Graph SDK · OData client</li>
+          <li>Azure Service Bus for event delivery</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Member 2 -->
+    <div class="member-card m2">
+      <div class="mc-head">
+        <h3>🗄️ Data Foundation Service</h3>
+        <div class="mc-num">Member 2 — Data Engineering Lead</div>
+      </div>
+      <div class="mc-body">
+        <h6>Owns</h6>
+        <ul>
+          <li>Azure Data Factory pipelines (bronze → silver → gold)</li>
+          <li>Dataverse entity model + schemas</li>
+          <li>Identity resolution engine (cross-system ID match)</li>
+          <li>Power BI semantic model (Gold layer)</li>
+        </ul>
+        <h6>Interface (Port)</h6>
+        <span class="iface">DataStore.query(entity, filter) → DataFrame</span>
+        <h6>Tech Stack</h6>
+        <ul>
+          <li>Azure Data Factory · Dataverse · Microsoft Fabric</li>
+          <li>Power BI Premium · semantic model</li>
+          <li>SQLite for local dev mirror</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Member 3 -->
+    <div class="member-card m3">
+      <div class="mc-head">
+        <h3>🤖 Agent Orchestration Service</h3>
+        <div class="mc-num">Member 3 — AI / Agent Lead</div>
+      </div>
+      <div class="mc-body">
+        <h6>Owns</h6>
+        <ul>
+          <li>Orchestrator, Insight, Report Builder, Action, Critic agents</li>
+          <li>Copilot Studio agent definitions + topics</li>
+          <li>MCP server implementations (LMS / HR / PowerBI / Automate)</li>
+          <li>Prompt engineering &amp; evaluation suite</li>
+        </ul>
+        <h6>Interface (Port)</h6>
+        <span class="iface">Agent.handle(intent, context) → Response</span>
+        <h6>Tech Stack</h6>
+        <ul>
+          <li>Azure AI Foundry · Copilot Studio</li>
+          <li>Azure OpenAI (GPT-4o) for reasoning</li>
+          <li>Custom MCP servers (Python FastAPI)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Member 4 -->
+    <div class="member-card m4">
+      <div class="mc-head">
+        <h3>🧠 Memory &amp; Intelligence Service</h3>
+        <div class="mc-num">Member 4 — ML / Memory Lead</div>
+      </div>
+      <div class="mc-body">
+        <h6>Owns</h6>
+        <ul>
+          <li>Cosmos DB schema (memory, vectors, knowledge graph)</li>
+          <li>Vector embeddings pipeline (Azure OpenAI embeddings)</li>
+          <li>Knowledge graph in Cosmos Gremlin (people → skills → roles)</li>
+          <li>Predictive ML models (Azure ML) — compliance, attrition</li>
+        </ul>
+        <h6>Interface (Port)</h6>
+        <span class="iface">Memory.recall(query, type) → Context</span>
+        <h6>Tech Stack</h6>
+        <ul>
+          <li>Cosmos DB (NoSQL vector + Gremlin graph)</li>
+          <li>Azure OpenAI embeddings (text-embedding-3-large)</li>
+          <li>Azure ML pipelines + endpoints</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Member 5 -->
+    <div class="member-card m5">
+      <div class="mc-head">
+        <h3>📤 Output &amp; Generation Service</h3>
+        <div class="mc-num">Member 5 — Output / Automation Lead</div>
+      </div>
+      <div class="mc-body">
+        <h6>Owns</h6>
+        <ul>
+          <li>Generative Power BI reports (REST API + Tabular model)</li>
+          <li>Power Automate flow generator (JSON to flow)</li>
+          <li>Custom React UI components (for non-PBI cases)</li>
+          <li>Outbound adapters (Teams, Outlook, Webhook, ServiceNow)</li>
+        </ul>
+        <h6>Interface (Port)</h6>
+        <span class="iface">Output.render(spec, channel) → Artifact</span>
+        <h6>Tech Stack</h6>
+        <ul>
+          <li>Power BI REST API · Tabular Model API</li>
+          <li>Power Automate Management API</li>
+          <li>React + Fluent UI for custom widgets</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Member 6 -->
+    <div class="member-card m6">
+      <div class="mc-head">
+        <h3>🛡️ Platform &amp; Observability Service</h3>
+        <div class="mc-num">Member 6 — Platform / SecOps Lead</div>
+      </div>
+      <div class="mc-body">
+        <h6>Owns</h6>
+        <ul>
+          <li>Admin console UI (Power Pages or Blazor)</li>
+          <li>Entra ID auth, RBAC, RLS rules, Key Vault</li>
+          <li>App Insights, hallucination detection, cost tracking</li>
+          <li>CI/CD pipelines (Azure DevOps) + audit logging</li>
+        </ul>
+        <h6>Interface (Port)</h6>
+        <span class="iface">Platform.audit(actor, action, target) → LogEntry</span>
+        <h6>Tech Stack</h6>
+        <ul>
+          <li>Entra ID · Azure Key Vault · App Insights</li>
+          <li>Azure Monitor · Log Analytics workspace</li>
+          <li>Azure DevOps · GitHub Actions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 3: SAMPLE MOCK DATA -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sh">
+    <div class="sh-num">3</div>
+    <div>
+      <h2>Sample Mock Data — Per Source</h2>
+      <p>Drop these JSON / CSV samples into <code style="font-family:'JetBrains Mono',monospace;background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:11px;">/mock/&lt;source&gt;/</code> in your local dev folder. Each adapter reads from these in Phase 1 and switches to live Azure sources in Phase 2 with zero code change.</p>
+    </div>
+  </div>
+
+  <div class="mock-grid">
+    <!-- Mock LMS -->
+    <div class="mock-card">
+      <div class="mch"><h4>🎓 Mock LMS — Course Completion</h4><span class="owner">Owner: Member 1</span></div>
+      <div class="mcb">
+<pre>{
+  <span class="key">"completion_id"</span>: <span class="str">"CMP-2026-44831"</span>,
+  <span class="key">"employee_id"</span>: <span class="str">"EMP-1024"</span>,
+  <span class="key">"course_id"</span>: <span class="str">"AZURE-ML-201"</span>,
+  <span class="key">"course_name"</span>: <span class="str">"Azure ML Fundamentals"</span>,
+  <span class="key">"category"</span>: <span class="str">"Technical"</span>,
+  <span class="key">"status"</span>: <span class="str">"in_progress"</span>,
+  <span class="key">"completion_pct"</span>: <span class="num">67</span>,
+  <span class="key">"score"</span>: <span class="num">null</span>,
+  <span class="key">"enrolled_date"</span>: <span class="str">"2026-03-15"</span>,
+  <span class="key">"last_activity"</span>: <span class="str">"2026-05-09T14:22:00Z"</span>,
+  <span class="key">"mandatory"</span>: <span class="bool">true</span>,
+  <span class="key">"due_date"</span>: <span class="str">"2026-06-30"</span>,
+  <span class="key">"hours_logged"</span>: <span class="num">8.5</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- Mock HR -->
+    <div class="mock-card">
+      <div class="mch"><h4>👥 Mock HR — Employee Profile</h4><span class="owner">Owner: Member 1</span></div>
+      <div class="mcb">
+<pre>{
+  <span class="key">"employee_id"</span>: <span class="str">"EMP-1024"</span>,
+  <span class="key">"name"</span>: <span class="str">"Priya Sharma"</span>,
+  <span class="key">"email"</span>: <span class="str">"priya.sharma@org.com"</span>,
+  <span class="key">"role"</span>: <span class="str">"Senior Data Engineer"</span>,
+  <span class="key">"department"</span>: <span class="str">"Engineering"</span>,
+  <span class="key">"team"</span>: <span class="str">"Data Platform"</span>,
+  <span class="key">"manager_id"</span>: <span class="str">"EMP-0512"</span>,
+  <span class="key">"hrbp_id"</span>: <span class="str">"EMP-0301"</span>,
+  <span class="key">"tenure_months"</span>: <span class="num">34</span>,
+  <span class="key">"location"</span>: <span class="str">"Bengaluru, IN"</span>,
+  <span class="key">"region"</span>: <span class="str">"APAC"</span>,
+  <span class="key">"required_skills"</span>: [<span class="str">"python"</span>, <span class="str">"azure"</span>, <span class="str">"sql"</span>],
+  <span class="key">"is_active"</span>: <span class="bool">true</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- Mock SharePoint -->
+    <div class="mock-card">
+      <div class="mch"><h4>📁 Mock SharePoint — Tracker Metadata</h4><span class="owner">Owner: Member 1</span></div>
+      <div class="mcb">
+<pre>{
+  <span class="key">"file_id"</span>: <span class="str">"SP-Q2-Training-Tracker-2026"</span>,
+  <span class="key">"file_name"</span>: <span class="str">"Q2_Training_Status.xlsx"</span>,
+  <span class="key">"site"</span>: <span class="str">"LearningOps"</span>,
+  <span class="key">"library"</span>: <span class="str">"Trackers"</span>,
+  <span class="key">"path"</span>: <span class="str">"/sites/LearningOps/Trackers/"</span>,
+  <span class="key">"modified_by"</span>: <span class="str">"L&amp;D-Admin"</span>,
+  <span class="key">"modified_date"</span>: <span class="str">"2026-04-30T10:15:00Z"</span>,
+  <span class="key">"size_kb"</span>: <span class="num">412</span>,
+  <span class="key">"row_count"</span>: <span class="num">247</span>,
+  <span class="key">"sheet_names"</span>: [<span class="str">"Compliance"</span>, <span class="str">"Technical"</span>],
+  <span class="key">"detected_schema"</span>: <span class="str">"v3-quarterly"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- Mock Compliance Summary -->
+    <div class="mock-card">
+      <div class="mch"><h4>📊 Mock Aggregate — Team Compliance</h4><span class="owner">Owner: Member 2</span></div>
+      <div class="mcb">
+<pre>{
+  <span class="key">"team_id"</span>: <span class="str">"TM-ENG-DataPlatform"</span>,
+  <span class="key">"team_name"</span>: <span class="str">"Data Platform"</span>,
+  <span class="key">"department"</span>: <span class="str">"Engineering"</span>,
+  <span class="key">"compliance_pct"</span>: <span class="num">78</span>,
+  <span class="key">"target_pct"</span>: <span class="num">90</span>,
+  <span class="key">"below_threshold"</span>: <span class="bool">true</span>,
+  <span class="key">"lagging_courses"</span>: [
+    <span class="str">"security-fundamentals-2026"</span>,
+    <span class="str">"data-privacy-q2-2026"</span>
+  ],
+  <span class="key">"employees_behind"</span>: <span class="num">12</span>,
+  <span class="key">"avg_completion"</span>: <span class="num">73.2</span>,
+  <span class="key">"deadline"</span>: <span class="str">"2026-06-30"</span>,
+  <span class="key">"risk_level"</span>: <span class="str">"medium"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- Mock Agent Memory -->
+    <div class="mock-card">
+      <div class="mch"><h4>🧠 Mock Agent Memory — Episodic Record</h4><span class="owner">Owner: Member 4</span></div>
+      <div class="mcb">
+<pre>{
+  <span class="key">"memory_id"</span>: <span class="str">"MEM-EP-2026-0511-1024"</span>,
+  <span class="key">"type"</span>: <span class="str">"episodic"</span>,
+  <span class="key">"user_id"</span>: <span class="str">"EMP-0512"</span>,
+  <span class="key">"timestamp"</span>: <span class="str">"2026-05-11T09:23:00Z"</span>,
+  <span class="key">"query"</span>: <span class="str">"What's engineering compliance this quarter?"</span>,
+  <span class="key">"agent_response"</span>: <span class="str">"Engineering at 78% — Data Platform lagging"</span>,
+  <span class="key">"data_sources_used"</span>: [<span class="str">"LMS"</span>, <span class="str">"HR"</span>],
+  <span class="key">"user_feedback"</span>: <span class="str">"positive"</span>,
+  <span class="key">"followup"</span>: <span class="str">"scheduled_weekly_alert"</span>,
+  <span class="key">"embedding_id"</span>: <span class="str">"EMB-2026-0511-1024"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- Mock Knowledge Graph -->
+    <div class="mock-card">
+      <div class="mch"><h4>🔗 Mock Knowledge Graph — Skill Edge</h4><span class="owner">Owner: Member 4</span></div>
+      <div class="mcb">
+<pre><span class="com">// Gremlin vertex + edge in Cosmos DB</span>
+{
+  <span class="key">"id"</span>: <span class="str">"EMP-1024"</span>,
+  <span class="key">"label"</span>: <span class="str">"Employee"</span>,
+  <span class="key">"properties"</span>: {
+    <span class="key">"name"</span>: <span class="str">"Priya Sharma"</span>,
+    <span class="key">"role"</span>: <span class="str">"Senior Data Engineer"</span>
+  },
+  <span class="key">"edges"</span>: [
+    {
+      <span class="key">"label"</span>: <span class="str">"HAS_SKILL"</span>,
+      <span class="key">"to"</span>: <span class="str">"SKILL-azure-ml"</span>,
+      <span class="key">"proficiency"</span>: <span class="num">0.75</span>,
+      <span class="key">"verified"</span>: <span class="bool">true</span>
+    },
+    {
+      <span class="key">"label"</span>: <span class="str">"REPORTS_TO"</span>,
+      <span class="key">"to"</span>: <span class="str">"EMP-0512"</span>
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+
+    <!-- Mock Generated Power Automate Flow -->
+    <div class="mock-card">
+      <div class="mch"><h4>⚡ Mock Generated Flow — Power Automate JSON</h4><span class="owner">Owner: Member 5</span></div>
+      <div class="mcb">
+<pre>{
+  <span class="key">"flow_id"</span>: <span class="str">"FLOW-AGENT-GEN-7821"</span>,
+  <span class="key">"name"</span>: <span class="str">"Compliance Alert — Engineering &lt; 80%"</span>,
+  <span class="key">"created_by"</span>: <span class="str">"AgentBuilder/v1.0"</span>,
+  <span class="key">"trigger"</span>: {
+    <span class="key">"type"</span>: <span class="str">"schedule"</span>,
+    <span class="key">"recurrence"</span>: <span class="str">"daily_8am"</span>
+  },
+  <span class="key">"steps"</span>: [
+    {
+      <span class="key">"action"</span>: <span class="str">"query_dataverse"</span>,
+      <span class="key">"entity"</span>: <span class="str">"team_compliance"</span>
+    },
+    {
+      <span class="key">"action"</span>: <span class="str">"condition"</span>,
+      <span class="key">"expression"</span>: <span class="str">"compliance_pct &lt; 80"</span>
+    },
+    {
+      <span class="key">"action"</span>: <span class="str">"send_email"</span>,
+      <span class="key">"to"</span>: <span class="str">"manager + hrbp"</span>
+    }
+  ],
+  <span class="key">"status"</span>: <span class="str">"draft_pending_approval"</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- Mock Predictive Output -->
+    <div class="mock-card">
+      <div class="mch"><h4>🔮 Mock Predictive ML — Forecast Output</h4><span class="owner">Owner: Member 4</span></div>
+      <div class="mcb">
+<pre>{
+  <span class="key">"prediction_id"</span>: <span class="str">"PRED-2026-Q4-COMP-ENG"</span>,
+  <span class="key">"model"</span>: <span class="str">"compliance-forecaster-v2"</span>,
+  <span class="key">"target"</span>: <span class="str">"Engineering"</span>,
+  <span class="key">"forecast_period"</span>: <span class="str">"2026-Q4"</span>,
+  <span class="key">"predicted_compliance"</span>: <span class="num">82</span>,
+  <span class="key">"target_compliance"</span>: <span class="num">95</span>,
+  <span class="key">"gap_pct"</span>: <span class="num">13</span>,
+  <span class="key">"confidence"</span>: <span class="num">0.87</span>,
+  <span class="key">"contributing_factors"</span>: [
+    <span class="str">"new_hires_uncertified"</span>,
+    <span class="str">"course_release_delays"</span>
+  ],
+  <span class="key">"recommended_action"</span>: <span class="str">"early_assignment_campaign"</span>,
+  <span class="key">"generated_at"</span>: <span class="str">"2026-05-11T08:00:00Z"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: PORT CONTRACTS / INTERFACE DEFINITIONS -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sh">
+    <div class="sh-num">4</div>
+    <div>
+      <h2>Port Contracts — Interface Definitions</h2>
+      <p>The hexagonal pattern works because every boundary is a contract. Code against the interface; mock or cloud implementation can swap freely.</p>
+    </div>
+  </div>
+
+  <div class="iface-grid">
+    <div class="iface-card">
+      <div class="ifh"><h4>SourceAdapter — Inbound Port</h4><p>Implemented by LMSAdapter, HRAdapter, SharePointAdapter, etc.</p></div>
+      <div class="ifb">
+<pre><span class="kw">interface</span> <span class="tp">SourceAdapter</span>:
+    <span class="cm"># Fetch raw events from external system</span>
+    <span class="fn">fetch</span>(time_range: <span class="tp">TimeRange</span>) -> <span class="tp">list[Event]</span>
+
+    <span class="cm"># Health check — is upstream reachable?</span>
+    <span class="fn">health</span>() -> <span class="tp">HealthStatus</span>
+
+    <span class="cm"># Schema discovery for new sources</span>
+    <span class="fn">describe_schema</span>() -> <span class="tp">Schema</span></pre>
+      </div>
+    </div>
+
+    <div class="iface-card">
+      <div class="ifh"><h4>DataStore — Persistence Port</h4><p>Bronze, Silver, Gold, Vector, and Memory stores all implement this.</p></div>
+      <div class="ifb">
+<pre><span class="kw">interface</span> <span class="tp">DataStore</span>:
+    <span class="fn">write</span>(entity: <span class="tp">str</span>, records: <span class="tp">list[Record]</span>) -> <span class="tp">int</span>
+    <span class="fn">query</span>(entity: <span class="tp">str</span>, filter: <span class="tp">Filter</span>) -> <span class="tp">DataFrame</span>
+    <span class="fn">vector_search</span>(query: <span class="tp">str</span>, top_k: <span class="tp">int</span>) -> <span class="tp">list[Match]</span>
+    <span class="fn">graph_query</span>(gremlin: <span class="tp">str</span>) -> <span class="tp">GraphResult</span></pre>
+      </div>
+    </div>
+
+    <div class="iface-card">
+      <div class="ifh"><h4>Agent — Orchestration Port</h4><p>Implemented by Orchestrator, Insight, Report Builder, Action, Critic.</p></div>
+      <div class="ifb">
+<pre><span class="kw">interface</span> <span class="tp">Agent</span>:
+    <span class="fn">handle</span>(intent: <span class="tp">Intent</span>, ctx: <span class="tp">Context</span>) -> <span class="tp">Response</span>
+    <span class="fn">tools</span>() -> <span class="tp">list[MCPTool]</span>
+    <span class="fn">memory_keys</span>() -> <span class="tp">list[str]</span>
+    <span class="fn">system_prompt</span>() -> <span class="tp">str</span></pre>
+      </div>
+    </div>
+
+    <div class="iface-card">
+      <div class="ifh"><h4>OutputAdapter — Driven Port</h4><p>Implemented by TeamsNotifier, PowerBIPublisher, FlowBuilder, etc.</p></div>
+      <div class="ifb">
+<pre><span class="kw">interface</span> <span class="tp">OutputAdapter</span>:
+    <span class="fn">render</span>(spec: <span class="tp">OutputSpec</span>) -> <span class="tp">Artifact</span>
+    <span class="fn">deliver</span>(artifact: <span class="tp">Artifact</span>, channel: <span class="tp">str</span>) -> <span class="tp">DeliveryAck</span>
+    <span class="fn">schedule</span>(spec: <span class="tp">OutputSpec</span>, cron: <span class="tp">str</span>) -> <span class="tp">JobId</span></pre>
+      </div>
+    </div>
+
+    <div class="iface-card">
+      <div class="ifh"><h4>Memory — Recall &amp; Learn Port</h4><p>Cosmos DB-backed in cloud, local JSON in dev.</p></div>
+      <div class="ifb">
+<pre><span class="kw">interface</span> <span class="tp">Memory</span>:
+    <span class="fn">recall</span>(query: <span class="tp">str</span>, type: <span class="tp">MemType</span>) -> <span class="tp">Context</span>
+    <span class="fn">remember</span>(event: <span class="tp">Episode</span>) -> <span class="tp">str</span>
+    <span class="fn">feedback</span>(event_id: <span class="tp">str</span>, signal: <span class="tp">Signal</span>) -> <span class="tp">None</span>
+    <span class="fn">distill</span>() -> <span class="tp">int</span>  <span class="cm"># nightly job</span></pre>
+      </div>
+    </div>
+
+    <div class="iface-card">
+      <div class="ifh"><h4>Platform — Cross-Cutting Port</h4><p>Auth, audit, monitoring, cost — every service uses these.</p></div>
+      <div class="ifb">
+<pre><span class="kw">interface</span> <span class="tp">Platform</span>:
+    <span class="fn">authorize</span>(user: <span class="tp">User</span>, resource: <span class="tp">str</span>) -> <span class="tp">bool</span>
+    <span class="fn">audit</span>(actor: <span class="tp">str</span>, action: <span class="tp">str</span>, target: <span class="tp">str</span>) -> <span class="tp">None</span>
+    <span class="fn">track_cost</span>(query_id: <span class="tp">str</span>, tokens: <span class="tp">int</span>) -> <span class="tp">None</span>
+    <span class="fn">check_grounding</span>(response: <span class="tp">str</span>, sources: <span class="tp">list</span>) -> <span class="tp">float</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: LAYER DEEP DIVE TABLE -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="sh">
+    <div class="sh-num">5</div>
+    <div>
+      <h2>Layer-by-Layer Deep Dive</h2>
+      <p>Each layer's responsibilities, local mock implementation, cloud production implementation, and owner.</p>
+    </div>
+  </div>
+
+  <div class="deep-row header">
+    <div>LAYER</div>
+    <div>RESPONSIBILITY</div>
+    <div>LOCAL (Phase 1)</div>
+    <div>CLOUD (Phase 2+)</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">External Systems<div class="ln-sub">(source data origin)</div></div>
+    <div>The real systems holding learning, workforce, and reporting data — owned by other teams, treated as black boxes.</div>
+    <div>JSON / CSV fixtures stored in <code>/mock/sources/</code> simulating each system's response shape.</div>
+    <div>Live API endpoints — Cornerstone LMS, SAP SuccessFactors HR, SharePoint Online, Power BI Service.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Source Adapters<div class="ln-sub">(translate inputs)</div></div>
+    <div>One adapter per source system. Translates external API responses into the internal canonical event format.</div>
+    <div>Reads from JSON fixtures, returns normalised <code>Event</code> objects. Same code path as cloud.</div>
+    <div>Azure Functions calling real APIs via OAuth + Microsoft Graph SDK + OData clients.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Transport Layer<div class="ln-sub">(delivery)</div></div>
+    <div>Reliable, scalable delivery — HTTP, file, queue, streaming. Decoupled from source semantics.</div>
+    <div>In-process function calls. Events delivered synchronously.</div>
+    <div>Azure Service Bus queues + Event Hub streaming + Azure Functions HTTP triggers.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Ingestion Engine<div class="ln-sub">(unify &amp; resolve)</div></div>
+    <div>Schema detection, identity resolution across systems, medallion staging (Bronze → Silver → Gold).</div>
+    <div>Python scripts running ADF logic locally against fixtures. SQLite as Dataverse mock.</div>
+    <div>Azure Data Factory pipelines feeding Dataverse + Microsoft Fabric medallion zones.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Data Foundation<div class="ln-sub">(model + entities)</div></div>
+    <div>Canonical entity model — Employee, Course, Completion, Team, Skill, Compliance. Single source of truth.</div>
+    <div>SQLite database mirroring the Dataverse schema with seeded sample data.</div>
+    <div>Dataverse entities + Power BI semantic model (Gold layer) for analytical queries.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Agent Orchestration<div class="ln-sub">(reasoning)</div></div>
+    <div>5 specialist agents (Orchestrator, Insight, Report Builder, Action, Critic) with tool access via MCP.</div>
+    <div>Local Python multi-agent loop using Azure OpenAI dev tenant. MCP servers running on localhost.</div>
+    <div>Azure AI Foundry hosting agents + Copilot Studio interface + Azure OpenAI for inference.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Memory &amp; Intelligence<div class="ln-sub">(remember &amp; predict)</div></div>
+    <div>Episodic, semantic, procedural memory + vector search + knowledge graph + predictive forecasts.</div>
+    <div>Cosmos DB Emulator with vector + Gremlin support. Embeddings via Azure OpenAI dev tenant.</div>
+    <div>Azure Cosmos DB (multi-model: vector + graph + NoSQL) + Azure ML endpoints for predictions.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Output Engine<div class="ln-sub">(generate artifacts)</div></div>
+    <div>Generates Power BI reports, Power Automate flows, narrative summaries, and custom React UI on demand.</div>
+    <div>Local Power BI Desktop + JSON flow generator. React components served via local dev server.</div>
+    <div>Power BI REST API + Power Automate Management API + Power Pages hosting custom UI.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Outbound Adapters<div class="ln-sub">(deliver actions)</div></div>
+    <div>Push results to Teams, Outlook, ServiceNow, webhooks. Approval flows where needed.</div>
+    <div>Console logging + local file output simulating each delivery channel.</div>
+    <div>Bot Framework (Teams) + Graph API (Outlook) + REST adapters (ServiceNow / Jira / webhooks).</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Platform &amp; Auth<div class="ln-sub">(cross-cutting)</div></div>
+    <div>Identity, RBAC, row-level security, audit trails, secret management, admin console.</div>
+    <div>Mock JWT auth + local audit log file. Admin console runs as local Blazor / React app.</div>
+    <div>Entra ID + Key Vault + Dataverse RLS + Power Pages admin console + Azure DevOps CI/CD.</div>
+  </div>
+
+  <div class="deep-row">
+    <div class="layer-name">Observability<div class="ln-sub">(monitor &amp; cost)</div></div>
+    <div>Track agent quality, hallucination rate, cost per query, pipeline health, security events.</div>
+    <div>Python logging to local files + simple Streamlit dashboard reading those logs.</div>
+    <div>Azure Monitor + App Insights + Log Analytics + custom Power BI ops dashboards.</div>
+  </div>
+
+</div>
+
+</body>
+</html>
