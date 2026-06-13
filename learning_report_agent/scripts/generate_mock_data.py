@@ -1,4 +1,9 @@
-"""Generate realistic mock data for LMS, HR, and training systems."""
+"""Generate realistic mock data for LMS, HR, and training systems.
+
+Data is intentionally dirtied before saving to simulate real-world source
+system inconsistencies (nulls, variant spellings, duplicates, mixed casing).
+The setup_db.py cleaning step fixes all of these and logs every fix.
+"""
 import sys
 import random
 from pathlib import Path
@@ -13,6 +18,29 @@ from config import MOCK_DIR
 fake = Faker()
 random.seed(42)
 Faker.seed(42)
+
+# ── dirty-data variant maps ───────────────────────────────────────────────────
+_DEPT_VARIANTS = {
+    "Engineering": ["Engg", "ENGINEERING", "Eng Dept"],
+    "HR":          ["Human Resources", "H.R.", "Human Res"],
+    "Finance":     ["Fin", "FINANCE", "Financial Dept"],
+    "Operations":  ["Ops", "OPERATIONS", "Oper."],
+    "Marketing":   ["Mktg", "MARKETING", "Mkt"],
+    "Sales":       ["SALES", "Sales Dept"],
+    "Legal":       ["LEGAL", "Legal Dept"],
+    "IT":          ["Information Technology", "I.T."],
+}
+_STATUS_VARIANTS = {
+    "Completed":   ["completed", "COMPLETED", "Complete", "Done"],
+    "In Progress": ["in progress", "IN_PROGRESS", "In-Progress", "Ongoing"],
+    "Not Started": ["not started", "NOT_STARTED", "Pending", "pending"],
+}
+_PROFICIENCY_VARIANTS = {
+    "Beginner":     ["beginner", "BEGINNER", "Beg"],
+    "Intermediate": ["intermediate", "INTERMEDIATE", "Inter"],
+    "Advanced":     ["advanced", "ADVANCED", "Adv"],
+    "Expert":       ["expert", "EXPERT", "Exp"],
+}
 
 DEPARTMENTS = ["Engineering", "Sales", "HR", "Finance", "Operations", "Marketing", "Legal", "IT"]
 ROLES = {
@@ -145,30 +173,97 @@ def generate_training_budget(employees_df):
     return pd.DataFrame(rows)
 
 
+def _inject_dirty(df: pd.DataFrame, kind: str) -> pd.DataFrame:
+    """Introduce realistic data quality issues to simulate real source systems."""
+    df = df.copy()
+    rng = random.Random(99)  # separate seed so main data stays reproducible
+
+    if kind == "employees":
+        # Inconsistent department spellings (~12% of rows)
+        mask = df.index.map(lambda i: rng.random() < 0.12)
+        df.loc[mask, "department"] = df.loc[mask, "department"].apply(
+            lambda d: rng.choice(_DEPT_VARIANTS.get(d, [d]))
+        )
+        # Null emails (~6%)
+        null_email = df.index.map(lambda i: rng.random() < 0.06)
+        df.loc[null_email, "email"] = None
+        # Null location (~5%)
+        null_loc = df.index.map(lambda i: rng.random() < 0.05)
+        df.loc[null_loc, "location"] = None
+        # Mixed-case employment_status (~8%)
+        mixed_status = df.index.map(lambda i: rng.random() < 0.08)
+        df.loc[mixed_status, "employment_status"] = df.loc[mixed_status, "employment_status"].str.lower()
+        # Duplicate ~2% of rows
+        n_dupe = max(1, int(len(df) * 0.02))
+        dupes = df.sample(n=n_dupe, random_state=7)
+        df = pd.concat([df, dupes], ignore_index=True)
+
+    elif kind == "enrollments":
+        # Inconsistent status values (~10%)
+        mask = df.index.map(lambda i: rng.random() < 0.10)
+        df.loc[mask, "status"] = df.loc[mask, "status"].apply(
+            lambda s: rng.choice(_STATUS_VARIANTS.get(s, [s]))
+        )
+        # Inconsistent course_category casing (~8%)
+        cat_mask = df.index.map(lambda i: rng.random() < 0.08)
+        df.loc[cat_mask, "course_category"] = df.loc[cat_mask, "course_category"].str.lower()
+        # Null scores for some completed rows (~4%)
+        completed = df["status"].str.lower().str.contains("complet", na=False)
+        null_score = df.index.map(lambda i: rng.random() < 0.04)
+        df.loc[completed & null_score, "score"] = None
+        # Duplicate ~1.5% of rows
+        n_dupe = max(1, int(len(df) * 0.015))
+        dupes = df.sample(n=n_dupe, random_state=13)
+        df = pd.concat([df, dupes], ignore_index=True)
+
+    elif kind == "skills":
+        # Inconsistent proficiency_level casing (~10%)
+        mask = df.index.map(lambda i: rng.random() < 0.10)
+        df.loc[mask, "proficiency_level"] = df.loc[mask, "proficiency_level"].apply(
+            lambda p: rng.choice(_PROFICIENCY_VARIANTS.get(p, [p]))
+        )
+        # Duplicate ~1% of rows
+        n_dupe = max(1, int(len(df) * 0.01))
+        dupes = df.sample(n=n_dupe, random_state=17)
+        df = pd.concat([df, dupes], ignore_index=True)
+
+    elif kind == "budget":
+        # Null spent_usd for 2 random departments
+        null_idx = df.sample(n=min(2, len(df)), random_state=5).index
+        df.loc[null_idx, "spent_usd"] = None
+
+    return df
+
+
 def main():
-    print("Generating mock data...")
+    print("Generating mock data (with real-world dirty data injected)...")
 
     employees = generate_employees(500)
+    employees = _inject_dirty(employees, "employees")
     employees.to_csv(MOCK_DIR / "employees.csv", index=False)
-    print(f"  employees.csv — {len(employees)} rows")
+    print(f"  employees.csv       — {len(employees)} rows (incl. duplicates/nulls/variant spellings)")
 
-    enrollments = generate_lms_enrollments(employees)
+    enrollments = generate_lms_enrollments(employees[employees["employment_status"].str.lower() != "terminated"])
+    enrollments = _inject_dirty(enrollments, "enrollments")
     enrollments.to_csv(MOCK_DIR / "lms_enrollments.csv", index=False)
-    print(f"  lms_enrollments.csv — {len(enrollments)} rows")
+    print(f"  lms_enrollments.csv — {len(enrollments)} rows (incl. duplicates/status variants)")
 
     skills = generate_skill_assessments(employees)
+    skills = _inject_dirty(skills, "skills")
     skills.to_csv(MOCK_DIR / "skill_assessments.csv", index=False)
-    print(f"  skill_assessments.csv — {len(skills)} rows")
+    print(f"  skill_assessments.csv — {len(skills)} rows (incl. proficiency variants)")
 
     budget = generate_training_budget(employees)
+    budget = _inject_dirty(budget, "budget")
     budget.to_csv(MOCK_DIR / "training_budget.csv", index=False)
-    print(f"  training_budget.csv — {len(budget)} rows")
+    print(f"  training_budget.csv — {len(budget)} rows (incl. null spend values)")
 
     courses_df = pd.DataFrame(COURSES)
     courses_df.to_csv(MOCK_DIR / "course_catalog.csv", index=False)
-    print(f"  course_catalog.csv — {len(courses_df)} rows")
+    print(f"  course_catalog.csv  — {len(courses_df)} rows")
 
-    print(f"\nAll mock data saved to {MOCK_DIR}")
+    print(f"\nRaw (dirty) data saved to {MOCK_DIR}")
+    print("Run setup_db.py to clean, standardise, and load into the analytics database.")
 
 
 if __name__ == "__main__":

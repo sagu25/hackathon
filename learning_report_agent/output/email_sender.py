@@ -1,0 +1,144 @@
+"""Email sender — SMTP with PDF attachment. Falls back to dry-run (saves to disk) if unconfigured."""
+import smtplib
+import sqlite3
+import json
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
+from datetime import datetime
+from pathlib import Path
+
+from config import DB_PATH, settings
+
+REPORTS_OUT_DIR = Path(__file__).parent.parent / "data" / "sent_reports"
+REPORTS_OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _conn():
+    c = sqlite3.connect(DB_PATH)
+    c.row_factory = sqlite3.Row
+    return c
+
+
+def _log_delivery(recipients: list, report_title: str, report_type: str,
+                  status: str, detail: str, pdf_path: str = ""):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute(
+        "INSERT INTO delivery_log (recipients, report_title, report_type, status, detail, pdf_path) "
+        "VALUES (?,?,?,?,?,?)",
+        (", ".join(recipients), report_title, report_type, status, detail, pdf_path)
+    )
+    conn.commit()
+    conn.close()
+
+
+def send_report_email(
+    recipients: list[str],
+    report: dict,
+    pdf_bytes: bytes,
+    subject: str | None = None,
+    body_text: str | None = None,
+) -> dict:
+    """
+    Send a PDF report by email.
+    If SMTP is not configured, saves the PDF to disk and logs a dry-run entry.
+    Returns {"status": "sent"|"dry_run"|"error", "detail": str}
+    """
+    report_title = report.get("title", "Learning Report")
+    report_type  = report.get("report_type", "report")
+    ts           = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename     = f"{report_type}_{ts}.pdf"
+
+    if not subject:
+        subject = f"[Learning Report Agent] {report_title} — {datetime.now().strftime('%Y-%m-%d')}"
+
+    if not body_text:
+        body_text = _default_body(report)
+
+    # ── Dry-run if SMTP not configured ───────────────────────────────────────
+    if not settings.is_smtp_configured:
+        pdf_path = REPORTS_OUT_DIR / filename
+        pdf_path.write_bytes(pdf_bytes)
+        detail = (
+            f"SMTP not configured — PDF saved to {pdf_path}. "
+            f"Set SMTP_HOST / SMTP_USER / SMTP_PASSWORD in .env to enable real delivery."
+        )
+        print(f"  [EMAIL DRY-RUN] {detail}")
+        _log_delivery(recipients, report_title, report_type, "dry_run", detail, str(pdf_path))
+        return {"status": "dry_run", "detail": detail, "pdf_path": str(pdf_path)}
+
+    # ── Real SMTP send ────────────────────────────────────────────────────────
+    try:
+        msg = MIMEMultipart()
+        msg["From"]    = settings.smtp_from_email or settings.smtp_user
+        msg["To"]      = ", ".join(recipients)
+        msg["Subject"] = subject
+
+        msg.attach(MIMEText(body_text, "plain"))
+
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(pdf_bytes)
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
+        msg.attach(part)
+
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.sendmail(msg["From"], recipients, msg.as_string())
+
+        detail = f"Delivered to {len(recipients)} recipient(s): {', '.join(recipients)}"
+        print(f"  [EMAIL SENT] {detail}")
+        _log_delivery(recipients, report_title, report_type, "sent", detail)
+        return {"status": "sent", "detail": detail}
+
+    except Exception as exc:
+        detail = f"SMTP error: {exc}"
+        print(f"  [EMAIL ERROR] {detail}")
+        _log_delivery(recipients, report_title, report_type, "error", detail)
+        return {"status": "error", "detail": detail}
+
+
+def _default_body(report: dict) -> str:
+    rtype = report.get("report_type", "")
+    lines = [
+        "Dear Stakeholder,",
+        "",
+        f"Please find attached the {report.get('title', 'Learning Report')}.",
+        f"Generated: {str(report.get('generated_at', ''))[:19]}",
+        "",
+    ]
+    if rtype == "compliance":
+        lines += [
+            f"  Avg Compliance Rate : {report.get('avg_compliance_rate', 0)}%",
+            f"  At-Risk Departments : {len(report.get('at_risk_departments', []))}",
+            f"  Overdue Learners    : {report.get('total_at_risk', 0)}",
+        ]
+    elif rtype == "learning_kpis":
+        top = report.get("top_performing", {})
+        lines += [
+            f"  Org Avg Completion  : {report.get('org_avg_completion', 0)}%",
+            f"  Avg Hours/Employee  : {report.get('org_avg_hours', 0)}h",
+            f"  Top Department      : {top.get('department', 'N/A')}",
+        ]
+    elif rtype == "skill_gap":
+        lines += [
+            f"  Skill Areas Analysed: {report.get('total_skill_areas', 0)}",
+        ]
+    lines += [
+        "",
+        "This report was automatically generated by the Learning Report Agent.",
+        "— LTM HackToFuture 2026",
+    ]
+    return "\n".join(lines)
+
+
+def list_delivery_log(limit: int = 50) -> list[dict]:
+    conn = _conn()
+    rows = conn.execute(
+        "SELECT * FROM delivery_log ORDER BY sent_at DESC LIMIT ?", (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

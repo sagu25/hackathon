@@ -21,11 +21,43 @@ DEPARTMENTS = ["All Departments", "Engineering", "Sales", "HR", "Finance", "Oper
 dept = st.selectbox("Department", DEPARTMENTS, key="report_dept_select")
 dept_filter = None if dept == "All Departments" else dept
 
-col1, col2 = st.columns([1, 5])
+col1, col2, col3 = st.columns([2, 2, 6])
 with col1:
     generate = st.button("Generate Report", type="primary", use_container_width=True)
 with col2:
     save_btn = st.button("Save Report", use_container_width=True)
+
+# PDF + Word downloads — shown only after a report has been generated
+if "current_report" in st.session_state:
+    base_name = (st.session_state.current_report.get("title", "report")
+                 .replace(" ", "_").replace("—", "-")[:60])
+    dl1, dl2 = col3.columns(2)
+
+    try:
+        from output.pdf_generator import generate_pdf
+        pdf_bytes = generate_pdf(st.session_state.current_report)
+        dl1.download_button(
+            label="Download PDF",
+            data=pdf_bytes,
+            file_name=base_name + ".pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
+    except Exception as _err:
+        dl1.warning(f"PDF unavailable: {_err}")
+
+    try:
+        from output.word_generator import generate_word
+        docx_bytes = generate_word(st.session_state.current_report)
+        dl2.download_button(
+            label="Download Word",
+            data=docx_bytes,
+            file_name=base_name + ".docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True,
+        )
+    except Exception as _err:
+        dl2.warning(f"Word unavailable: {_err}")
 
 if generate or "current_report" in st.session_state:
     if generate:
